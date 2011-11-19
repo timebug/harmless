@@ -364,7 +364,7 @@ class chessboard:
                                     self.fin.write('position fen ' + fen_str + '\n')
                                     # print "position fen %s" % fen_str
                                     self.fin.flush()
-                                    self.fin.write('go depth 3\n')
+                                    self.fin.write('go depth 4\n')
                                     self.fin.flush()
 
                             self.selected = ()

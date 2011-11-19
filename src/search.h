@@ -6,6 +6,9 @@
 #include "genmoves.h"
 #include "evaluate.h"
 
+#define INFINITE 20000
+#define OVER_VALUE 19990
+
 void make_move(move *mv);
 void think_depth(int depth);
 
