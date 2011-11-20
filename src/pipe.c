@@ -25,50 +25,14 @@ inline void parse_dir(char *dir, const char *path)
     }
 }
 
-void open_pipe(const char *proc_file)
+void open_pipe()
 {
     int stdin_pipe[2], stdout_pipe[2];
     
     char dir[PATH_MAX_CHAR];
     eof = 0;
-  
-    if (proc_file == NULL) {
-        
-        input = STDIN_FILENO;
-        output = STDOUT_FILENO;
-        
-    } else {
-        pipe(stdin_pipe);
-        pipe(stdout_pipe);
-
-        /* child */
-        if (fork() == 0) {
-            close(stdin_pipe[1]);
-            close(stdout_pipe[0]);
-            
-            dup2(stdin_pipe[0], STDIN_FILENO);
-            close(stdin_pipe[0]);
-            
-            dup2(stdout_pipe[1], STDOUT_FILENO);
-            dup2(stdout_pipe[1], STDERR_FILENO);
-            close(stdout_pipe[1]);
-            
-            parse_dir(dir, proc_file);
-            chdir(dir);
-            
-            nice(20);
-            execl(proc_file, proc_file, NULL);
-            exit(EXIT_FAILURE);
-        }
-        
-        /* parent */
-        close(stdin_pipe[0]);
-        close(stdout_pipe[1]);
-        
-        input = stdout_pipe[0];
-        output = stdin_pipe[1];
-    }
-        
+    input = STDIN_FILENO;
+    output = STDOUT_FILENO;
     read_end = 0;
 }
 

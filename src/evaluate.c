@@ -275,61 +275,65 @@ int evaluate()
     
     int side_tag;
     int over_flag;
-    
+
+    /* 红(r)、黑(b)棋子价值分量 */
     short r_value, b_value;
-    short f_value[2] = {0, 0};
+    
+    /* 红[0]、黑[1]棋子灵活度分量 */
+    short flexible[2] = {0, 0};
 
     r_value = b_value = 0;
 
-    for (i = 16; i < 32; ++i) {
+    for (i = 16; i < 32; i++) {
         if (piece[i] > 0)
             r_value += position_values[0][piece_type[i]][piece[i]];
     }
 
-    for (i = 32; i < 48; ++i) {
+    for (i = 32; i < 48; i++) {
         if (piece[i] > 0)
             b_value += position_values[1][piece_type[i]][piece[i]];
     }
 
-    for (r = 0; r <= 1; ++r) {
+    for (r = 0; r <= 1; r++) {
         side_tag = 16 + 16 * r;
 
         /* 将(帅)的灵活性 */
         p = piece[side_tag];
         
-        for (k = 0; k < 4; ++k) {
+        for (k = 0; k < 4; k++) {
             next = p + king_dir[k];
 
             if (legal_position[r][next] & position_mask[KING]) {
+                /* 目标位置上没有本方棋子 */
                 if (!(board[next] & side_tag))
-                    f_value[r] += 2;
+                    flexible[r] += F_KING;
             }
         }
 
         /* 士(仕)的灵活性 */
-        for (i = 1; i <= 2; ++i) {
+        for (i = 1; i <= 2; i++) {
             p = piece[side_tag + i];
 
             if (!p) continue;
 
-            for (k = 0; k < 4; ++k) {
+            for (k = 0; k < 4; k++) {
                 next = p + advisor_dir[k];
                                 
                 if (legal_position[r][next] & position_mask[ADVISOR]) {
 
                     if (!(board[next] & side_tag))
-                        f_value[r] += 2;
+                        flexible[r] += F_ADVISOR;
                 }
             }
         }
 
         /* 象(相)的灵活性 */
-        for (i = 3; i <= 4; ++i) {
+        for (i = 3; i <= 4; i++) {
             p = piece[side_tag + i];
 
             if (!p) continue;
 
-            for (k = 0; k < 4; ++k) {
+            for (k = 0; k < 4; k++) {
                 next = p + bishop_dir[k];
 
                 if (legal_position[r][next] & position_mask[BISHOP]) {
@@ -337,19 +341,19 @@ int evaluate()
                                         
                     if (!board[m]) {
                         if (!(board[next] & side_tag))
-                            f_value[r] += 2;
+                            flexible[r] += F_BISHOP;
                     }
                 }
             }
         }
 
         /* 马的灵活性 */
-        for (i = 5; i <= 6; ++i) {
+        for (i = 5; i <= 6; i++) {
             p = piece[side_tag + i];
 
             if (!p) continue;
 
-            for (k = 0; k < 8; ++k) {
+            for (k = 0; k < 8; k++) {
                 next = p + knight_dir[k];
 
                 if (legal_position[r][next] & position_mask[KNIGHT]) {
@@ -357,19 +361,19 @@ int evaluate()
 
                     if (!board[m]) {
                         if (!(board[next] & side_tag))
-                            f_value[r] += 5;
+                            flexible[r] += F_KNIGHT;
                     }
                 }
             }
         }
 
         /* 车的灵活性 */
-        for (i = 7; i <= 8; ++i) {
+        for (i = 7; i <= 8; i++) {
             p = piece[side_tag + i];
 
             if (!p) continue;
 
-            for (k = 0; k < 4; ++k) {
+            for (k = 0; k < 4; k++) {
                 for (j = 1; j < 10; ++j) {
                     next = p + j * rook_dir[k];
 
@@ -377,11 +381,11 @@ int evaluate()
                         break;
 
                     if (!board[next]) {
-                        f_value[r] += 4;
+                        flexible[r] += F_ROOK;
                     } else if (board[next] & side_tag) {
                         break;
                     } else {
-                        f_value[r] += 4;
+                        flexible[r] += F_ROOK;
                         break;
                     }
                 }
@@ -389,12 +393,13 @@ int evaluate()
         }
 
         /* 炮的灵活性 */
-        for (i = 9; i <= 10; ++i) {
+        for (i = 9; i <= 10; i++) {
             p = piece[side_tag + i];
 
             if (!p) continue;
 
-            for (k = 0; k < 4; ++k) {
+            for (k = 0; k < 4; k++) {
+                /* 中间隔子数量 */
                 over_flag = 0;
 
                 for (j = 1; j < 10; ++j) {
@@ -405,14 +410,13 @@ int evaluate()
 
                     if (!board[next]) {
                         if (!over_flag)
-                            f_value[r] += 3;
+                            flexible[r] += F_CANNON;
                     } else {
                         if (!over_flag) {
                             over_flag = 1;
                         } else {
                             if (!(board[next] & side_tag))
-                                f_value[r] += 3;
-
+                                flexible[r] += F_CANNON;
                             break;
                         }
                     }
@@ -421,23 +425,23 @@ int evaluate()
         }
 
         /* 兵(卒)的灵活性 */
-        for (i = 11; i <= 12; ++i) {
+        for (i = 11; i <= 15; i++) {
             p = piece[side_tag + i];
 
             if (!p) continue;
 
-            for (k = 0; k < 3; ++k) {
+            for (k = 0; k < 3; k++) {
                 next = p + pawn_dir[r][k];
 
                 if (legal_position[r][next] & position_mask[PAWN]) {
                     if (!(board[next] & side_tag))
-                        f_value[r] += 2;
+                        flexible[r] += F_PAWN;
                 }
             }
         }
     }
 
-    int result =  (f_value[0] + r_value) - (f_value[1] + b_value);
+    int result =  (flexible[0] + r_value) - (flexible[1] + b_value);
 
     if (side == RED)
         return result;

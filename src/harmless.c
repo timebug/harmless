@@ -38,25 +38,8 @@ int main(int argc, char *argv[])
 				fflush(stdout);
 				break;
 			case UCCI_COMM_POSITION:
-                
 				fen_to_arr(ucs.position.fen_str);
                 fflush(stdout);
-                                
-				for (i = 0; i < ucs.position.move_num; ++i) {
-                    
-					mv = str_to_move(ucs.position.coord_list[i]);
-                    
-					if ((mv.from == 0) && (mv.to == 0)) {
-						break;
-					}
-                                        
-					if (board[mv.from] == 0) {
-						break;
-					}
-                                        
-					make_move(&mv);
-				}
-                
 				break;
 			case UCCI_COMM_BANMOVES:
 				break;

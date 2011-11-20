@@ -108,6 +108,7 @@ while True:
             
             if output[0:10] == 'nobestmove': 
                 chessboard.over = True
+                chessboard.over_side = 1 - chessboard.side
                 continue
             elif output[0:8] == 'bestmove':
                 move_str = output[9:13]
@@ -122,9 +123,11 @@ while True:
         chessboard.move_from = LOCAL
         chessboard.side = 1 - chessboard.side
             
-        if chessboard.check(chessboard.side):
-            chessboard.over = chessboard.game_over(chessboard.side)
+        # if chessboard.check(chessboard.side):
+        chessboard.over = chessboard.game_over(chessboard.side)
+        if chessboard.over:
             chessboard.over_side = chessboard.side
+            
         moved = False
 
     if len(sys.argv) == 2 and sys.argv[1] == 'b' and init:

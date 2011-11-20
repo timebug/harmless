@@ -40,7 +40,11 @@ chessman_image = ['king.png',
                   'cannon.png',
                   'pawn.png']
 move_sound = 'sounds/MOVE.WAV'
+
 fen_str = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1'
+# fen_str = '6R2/3k5/2P1P4/8p/p8/4c1C2/9/9/4K4/c1B2AB2 w - - 0 1'
+# fen_str = '3ak4/7R1/2n3n2/9/p5b1p/2pr5/9/4r4/4A4/4KA3 w - - 0 1';
+# fen_str = '9/4R4/3kCR3/2P1nC2p/9/9/P3P1P1P/8B/4A4/3AK3c w - - 0 1';
 
 king_dir = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 advisor_dir = [(-1, -1), (1, -1), (-1, 1), (1, 1)]

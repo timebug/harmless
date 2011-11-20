@@ -5,7 +5,7 @@
 #define PATH_MAX_CHAR 1024
 #define PATH_SEPARATOR '/'
 
-void open_pipe(const char *proc_file);
+void open_pipe();
 int line_input(char *line_str);
 
 #endif

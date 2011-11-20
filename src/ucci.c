@@ -34,7 +34,7 @@ ucci_comm_enum boot_line()
 {
     char line_str[LINE_INPUT_MAX_CHAR];
         
-    open_pipe(NULL);
+    open_pipe();
 
     while (!line_input(line_str)) {
         sleep(1);

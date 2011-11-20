@@ -356,8 +356,6 @@ class chessboard:
                                     net = chessnet()
                                     move_str = move_to_str(8-self.selected[0],9-self.selected[1],8-x,9-y)
                                     net.send_move(move_str)
-
-                                    self.acm()
                                     
                                 if self.mode == AI:
                                     fen_str = self.get_fen()
@@ -536,27 +534,3 @@ class chessboard:
                 break
 
         return over
-
-    def acm(self):
-        pc_code = [0]*16
-        pc_code += range(17, 33)
-        pc_code += range(1, 17)
-
-        board = [0]*10
-        for i in range(0, 10):
-            board[i] = [0]*9
-
-        for i in range(16,48):
-            if self.piece[i] is not 0:
-                col = self.piece[i][0]
-                row = self.piece[i][1]
-                board[row][col] = pc_code[i]
-
-        for i in range(0, 10):
-            for j in range(0, 9):
-                sys.stdout.write(str(board[i][j]))
-                if j < 9:
-                    sys.stdout.write(" ")
-            sys.stdout.write("\n")
-
-        sys.stdout.write("\n")

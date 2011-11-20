@@ -49,99 +49,43 @@ static void unmake_move(move *mv)
     change_side();
 }
 
-static int is_game_over(int depth)
-{
-    BYTE r_king = piece[16];
-    BYTE b_king = piece[32];
-
-    if (r_king == 0) {
-        if (side == RED) {
-            return -(OVER_VALUE + depth);
-        } else {
-            return OVER_VALUE + depth;
-        }
-    }
-
-    if (b_king == 0) {
-        if (side == BLACK) {
-            return -(OVER_VALUE + depth);
-        } else {
-            return OVER_VALUE + depth;
-        }
-    }
-
-    return 0;
-}
-
-static int nega_max(int depth)
-{
-    int over, count, score;
-    int current = -INFINITE;
-    
-    over = is_game_over(depth);
-    
-    if (over)
-        return over;
-
-    if (depth <= 0)
-        return evaluate();
-
-    count = gen_all_move(depth);
-
-    int i;
-
-    for (i = 0; i < count; i++) {
-        
-        make_move(&move_list[depth][i]);
-        score = -nega_max(depth - 1);
-        unmake_move(&move_list[depth][i]);
-
-        if (score > current) {
-            current = score;
-            if (depth == max_depth) {
-                best_move = move_list[depth][i];
-            }
-        }
-    }
-
-    return current;
-}
-
 /* TODO: 循环检测 */
-
+/* TODO: 置换表 */
 static int alpha_beta(int depth, int alpha, int beta)
 {
     int over, count, score;
     
-    over = is_game_over(depth);
-    
-    if (over)
-        return over;
-
     if (depth <= 0)
         return evaluate();
 
     count = gen_all_move(depth);
 
     int i;
-
     for (i = 0; i < count; i++) {
         
         make_move(&move_list[depth][i]);
         score = -alpha_beta(depth-1, -beta, -alpha);
         unmake_move(&move_list[depth][i]);
 
-        if (score > alpha) {
-            alpha = score;
-            /* 靠近根节点时保留最佳走法 */
-            if (depth == max_depth) {
-                best_move = move_list[depth][i];
-            }
-        }
-
         /* beta剪枝 */
         if (alpha >= beta)
             break;
+
+        if (score > alpha) {
+            alpha = score;
+
+            /* 靠近根节点时保留最佳走法 */
+            if (depth == max_depth) {
+                best_move = move_list[depth][i];
+
+                long tmp = move_to_str(best_move);
+                FILE *fd;
+                fd = fopen("harmless.log", "a");
+                fprintf(fd, "i = %d\tdepth = %d\tscore = %d\t%.4s\n",
+                        i, depth, score, (const char *)&tmp);
+                fclose(fd);
+            }
+        }
     }
 
     /* 返回极大值 */
@@ -151,10 +95,8 @@ static int alpha_beta(int depth, int alpha, int beta)
 void think_depth(int depth)
 {
     long best;
-
     best_move.from = 0;
     best_move.to = 0;
-    
     max_depth = depth;
 
     /* nega_max(depth); */
@@ -165,6 +107,11 @@ void think_depth(int depth)
     } else {
         best = move_to_str(best_move);
         printf("bestmove %.4s\n", (const char *)&best);
+
+        FILE * fd;
+        fd = fopen("harmless.log", "a");
+        fprintf(fd, ">> bestmove = %.4s\n", (const char *)&best);
+        fclose(fd);
     }
 
     fflush(stdout);
