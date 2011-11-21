@@ -19,6 +19,7 @@
 
 from common import *
 
+import sys
 import pygame
 
 class chessman:
@@ -83,6 +84,7 @@ class chessman:
                         if self.y == 5 and y == 4:
                             self.over_river = True
             else:
+
                 if abs(self.x - x) + abs(self.y - y) != 1:
                     ok = False
                 if self.y < 5:

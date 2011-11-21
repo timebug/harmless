@@ -49,15 +49,47 @@ static void unmake_move(move *mv)
     change_side();
 }
 
-/* TODO: 循环检测 */
+/* 负极大值搜索
+ * 极限深度：3层 */
+static int nega_max(int depth);
+
+/* 带AlphaBeta剪枝的负极大值搜索
+ * 极限深度：4层 */
+static int alpha_beta(int depth, int alpha, int beta);
+
+/* TODO: PVS */
 /* TODO: 置换表 */
+/* TODO: 循环检测 */
+/* fix: 最佳走法为空时提前认输，此时仍有子可以动 */
+
+void think_depth(int depth)
+{
+    long best;
+    best_move.from = 0;
+    best_move.to = 0;
+    max_depth = depth;
+
+    /* nega_max(depth); */
+    alpha_beta(depth, -INFINITE, INFINITE);
+    
+    if (best_move.from == 0) {
+        printf("nobestmove\n");
+    } else {
+        best = move_to_str(best_move);
+        printf("bestmove %.4s\n", (const char *)&best);
+    }
+
+    fflush(stdout);
+}
+
 static int alpha_beta(int depth, int alpha, int beta)
 {
     int over, count, score;
     
     if (depth <= 0)
         return evaluate();
-
+    
+    /* 生成当前局面的所有走法 */
     count = gen_all_move(depth);
 
     int i;
@@ -77,13 +109,6 @@ static int alpha_beta(int depth, int alpha, int beta)
             /* 靠近根节点时保留最佳走法 */
             if (depth == max_depth) {
                 best_move = move_list[depth][i];
-
-                long tmp = move_to_str(best_move);
-                FILE *fd;
-                fd = fopen("harmless.log", "a");
-                fprintf(fd, "i = %d\tdepth = %d\tscore = %d\t%.4s\n",
-                        i, depth, score, (const char *)&tmp);
-                fclose(fd);
             }
         }
     }
@@ -92,27 +117,31 @@ static int alpha_beta(int depth, int alpha, int beta)
     return alpha;
 }
 
-void think_depth(int depth)
+static int nega_max(int depth)
 {
-    long best;
-    best_move.from = 0;
-    best_move.to = 0;
-    max_depth = depth;
-
-    /* nega_max(depth); */
-    alpha_beta(depth, -INFINITE, INFINITE);
+    int over, count, score;
+    int current = -20000;
     
-    if (best_move.from == 0) {
-        printf("nobestmove\n");
-    } else {
-        best = move_to_str(best_move);
-        printf("bestmove %.4s\n", (const char *)&best);
+    if (depth <= 0)
+        return evaluate();
 
-        FILE * fd;
-        fd = fopen("harmless.log", "a");
-        fprintf(fd, ">> bestmove = %.4s\n", (const char *)&best);
-        fclose(fd);
+    count = gen_all_move(depth);
+
+    int i;
+
+    for (i = 0; i < count; i++) {
+        
+        make_move(&move_list[depth][i]);
+        score = - nega_max(depth - 1);
+        unmake_move(&move_list[depth][i]);
+
+        if (score > current) {
+            current = score;
+            if (depth == max_depth) {
+                best_move = move_list[depth][i];
+            }
+        }
     }
 
-    fflush(stdout);
+    return current;
 }
