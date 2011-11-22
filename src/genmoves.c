@@ -71,7 +71,7 @@ static void add_move(BYTE from, BYTE to, int depth)
     board[to] = pc1;
     piece[pc1] = to;
     if (pc2) {
-        piece[pc2] = 0;        
+        piece[pc2] = 0;
     }
 
     int kill = check();
@@ -81,13 +81,13 @@ static void add_move(BYTE from, BYTE to, int depth)
     board[to] = pc2;
     piece[pc1] = from;
     if (pc2) {
-        piece[pc2] = to;        
+        piece[pc2] = to;
     }
 
     if (!kill) {
         move_list[depth][move_count].from = from;
         move_list[depth][move_count].to = to;
-        move_count++;        
+        move_count++;
     }
 }
 
@@ -239,7 +239,7 @@ int gen_all_move(int depth)
         p = piece[side_tag + i];
 
         if (!p) continue;
-                
+        
         for (k = 0; k < 3; ++k) {
             next = p + pawn_dir[side][k];
 
@@ -305,9 +305,9 @@ static int check()
     }
 
     /* 检测是否被车攻击 */
-    kill = 1;
-        
     for (i = 7; i <= 8; ++i) {
+        kill = 1;
+        
         p = piece[side_tag + i];
 
         if (!p) continue;

@@ -134,7 +134,7 @@ class chessboard:
         # if fen_str[i+1] == 'b':
         #     self.side = BLACK
         # else:
-        #     self.side = RED
+        #     self.side = RED            
 
     def draw(self, screen):
         screen.fill((0,0,0))
@@ -278,9 +278,11 @@ class chessboard:
             p = self.piece[side_tag + i]
             if not p:
                 continue
+            
             flag = 0
             if p[1] > 4:
                 flag = 1
+                
             for k in range(0, 3):
                 tmp = pawn_dir[flag][k]
                 n = (p[0]+tmp[0], p[1]+tmp[1])
@@ -379,7 +381,7 @@ class chessboard:
                                 if self.mode == AI:
                                     fen_str = self.get_fen()
                                     self.fin.write('position fen ' + fen_str + '\n')
-                                    # print "position fen %s" % fen_str
+                                    print "position fen %s" % fen_str
                                     self.fin.flush()
                                     self.fin.write('go depth ' + str(AI_SEARCH_DEPTH)  + '\n')
                                     self.fin.flush()
@@ -532,9 +534,11 @@ class chessboard:
             p = self.piece[side_tag + i]
             if not p:
                 continue
+
             flag = 0
             if p[1] > 4:
                 flag = 1
+
             for k in range(0, 3):
                 tmp = pawn_dir[flag][k]
                 n = (p[0]+tmp[0], p[1]+tmp[1])
@@ -556,8 +560,8 @@ class chessboard:
             over = self.check(side)
             self.unmake_move(p ,n, chessman_)
             if not over:
-                # move_str = move_to_str(p[0],p[1],n[0],n[1]);
-                # sys.stdout.write("move = " + move_str + "\n");
+                # move_str = move_to_str(p[0],p[1],n[0],n[1])
+                # sys.stdout.write("move = " + move_str + "\n")
                 break
 
         return over

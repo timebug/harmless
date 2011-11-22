@@ -86,9 +86,9 @@ while True:
             y = (y - BORDER) / SPACE
             if not chessboard.over:
                 moved = chessboard.move_chessman(x, y)
-                if moved:
-                    if chessboard.check(1-chessboard.side):
-                        chessboard.over = chessboard.game_over(1-chessboard.side)
+                if chessboard.mode == NETWORK and moved:
+                    chessboard.over = chessboard.game_over(1-chessboard.side)
+                    if chessboard.over:
                         chessboard.over_side = 1-chessboard.side
                 
     chessboard.draw(screen)

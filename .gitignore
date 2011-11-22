@@ -1,3 +1,4 @@
 *.o
 *.pyc
 harmless
+harmless.log

@@ -70,7 +70,16 @@ class chessman:
             if abs(self.x - x) != 0 and abs(self.y - y) != 0:
                 ok = False
         elif self.kind == PAWN:
-            if not self.over_river:
+            if self.over_river:
+                if abs(self.x - x) + abs(self.y - y) != 1:
+                    ok = False
+                if self.y < 5:
+                    if self.x == x and self.y - y != 1:
+                        ok = False
+                else:
+                    if self.x == x and y - self.y != 1:
+                        ok = False
+            else:
                 if self.y < 5:
                     if y - self.y != 1 or x != self.x:
                         ok = False
@@ -82,17 +91,8 @@ class chessman:
                         ok = False
                     else:
                         if self.y == 5 and y == 4:
-                            self.over_river = True
-            else:
+                            self.over_river = True                
 
-                if abs(self.x - x) + abs(self.y - y) != 1:
-                    ok = False
-                if self.y < 5:
-                    if self.x == x and self.y - y != 1:
-                        ok = False
-                else:
-                    if self.x == x and y - self.y != 1:
-                        ok = False
         else:
             ok = False
         return ok
