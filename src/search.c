@@ -12,24 +12,49 @@ static int node_count;
 static void change_side()
 {
     side = 1 - side;
+
+    /* hash */
+    zobrist_key ^= zobrist_player;
+    zobrist_key_check ^= zobrist_player_check;
+    /* end */
 }
 
 void make_move(move *mv)
 {
-    BYTE pc1, pc2;
+    BYTE pc1, pc2, pt;
 
     pc1 = board[mv->from];
     pc2 = board[mv->to];
 
+    /* 目的地有其它子存在 */
     if (pc2) {
         mv->capture = pc2;
         piece[pc2] = 0;
+
+        /* hash */
+        pt = piece_type[pc2];
+        if (pc2 >= 32)
+            pt += 7;
+        
+        zobrist_key ^= zobrist_table[pt][mv->to];
+        zobrist_key_check ^= zobrist_table_check[pt][mv->to];
+        /* end */
     }
 
     board[mv->from] = 0;
     board[mv->to] = pc1;
-
     piece[pc1] = mv->to;
+
+    /* hash */
+    pt = piece_type[pc1];
+    if (pc1 >= 32)
+        pt += 7;
+
+    zobrist_key ^= zobrist_table[pt][mv->to] ^
+        zobrist_table[pt][mv->from];
+    zobrist_key_check ^= zobrist_table_check[pt][mv->to] ^
+        zobrist_table_check[pt][mv->from];
+    /* end */
 
     change_side();
 }
@@ -44,12 +69,31 @@ static void unmake_move(move *mv)
     if (pc2) {
         mv->capture = 0;
         piece[pc2] = mv->to;
+
+        /* hash */
+        pt = piece_type[pc2];
+        if (pc2 >= 32)
+            pt += 7;
+
+        zobrist_key ^= zobrist_table[pt][mv->to];
+        zobrist_key_check ^= zobrist_table_check[pt][mv->to];
+        /* end */
     }
 
     board[mv->from] = pc1;
     board[mv->to] = pc2;
-
     piece[pc1] = mv->from;
+
+    /* hash */
+    pt = piece_type[pc1];
+    if (pc1 >= 32)
+        pt += 7;
+
+    zobrist_key ^= zobrist_table[pt][mv->from] ^
+        zobrist_table[pt][mv->to];
+    zobrist_key_check ^= zobrist_table_check[pt][mv->from] ^
+        zobrist_table_check[pt][mv->to];
+    /* end */
 
     change_side();
 }
