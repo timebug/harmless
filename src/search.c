@@ -186,7 +186,7 @@ static int principal_variation_search(int depth, int alpha, int beta)
     }
     
     /* 产生下一步所有的可能的走法 */
-    count = gen_cap_move(move_array[depth]);
+    count = gen_non_cap_move(move_array[depth]);
 
     /* 产生第一个节点 */
     type = make_move(&move_array[depth][0]);
