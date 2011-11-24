@@ -13,7 +13,7 @@
 #define F_CANNON 3
 #define F_PAWN 2
 
-BYTE piece_type[];
+/* BYTE piece_type[]; */
 
 int evaluate();
 

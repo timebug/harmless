@@ -4,6 +4,8 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+move move_array[32][128];
+
 static int max_depth;
 static move best_move;
 
@@ -14,12 +16,12 @@ static void change_side()
     side = 1 - side;
 
     /* hash */
-    zobrist_key ^= zobrist_player;
-    zobrist_key_check ^= zobrist_player_check;
+    /* zobrist_key ^= zobrist_player; */
+    /* zobrist_key_check ^= zobrist_player_check; */
     /* end */
 }
 
-void make_move(move *mv)
+static BYTE make_move(move *mv)
 {
     BYTE pc1, pc2, pt;
 
@@ -28,16 +30,15 @@ void make_move(move *mv)
 
     /* 目的地有其它子存在 */
     if (pc2) {
-        mv->capture = pc2;
         piece[pc2] = 0;
 
         /* hash */
-        pt = piece_type[pc2];
-        if (pc2 >= 32)
-            pt += 7;
+        /* pt = piece_type[pc2]; */
+        /* if (pc2 >= 32) */
+        /*     pt += 7; */
         
-        zobrist_key ^= zobrist_table[pt][mv->to];
-        zobrist_key_check ^= zobrist_table_check[pt][mv->to];
+        /* zobrist_key ^= zobrist_table[pt][mv->to]; */
+        /* zobrist_key_check ^= zobrist_table_check[pt][mv->to]; */
         /* end */
     }
 
@@ -46,37 +47,38 @@ void make_move(move *mv)
     piece[pc1] = mv->to;
 
     /* hash */
-    pt = piece_type[pc1];
-    if (pc1 >= 32)
-        pt += 7;
+    /* pt = piece_type[pc1]; */
+    /* if (pc1 >= 32) */
+    /*     pt += 7; */
 
-    zobrist_key ^= zobrist_table[pt][mv->to] ^
-        zobrist_table[pt][mv->from];
-    zobrist_key_check ^= zobrist_table_check[pt][mv->to] ^
-        zobrist_table_check[pt][mv->from];
+    /* zobrist_key ^= zobrist_table[pt][mv->to] ^ */
+    /*     zobrist_table[pt][mv->from]; */
+    /* zobrist_key_check ^= zobrist_table_check[pt][mv->to] ^ */
+    /*     zobrist_table_check[pt][mv->from]; */
     /* end */
 
     change_side();
+
+    return pc2;
 }
 
-static void unmake_move(move *mv)
+static void unmake_move(move *mv, BYTE type)
 {
     BYTE pc1, pc2;
 
     pc1 = board[mv->to];
-    pc2 = mv->capture;
+    pc2 = type;
 
     if (pc2) {
-        mv->capture = 0;
         piece[pc2] = mv->to;
 
         /* hash */
-        pt = piece_type[pc2];
-        if (pc2 >= 32)
-            pt += 7;
+        /* pt = piece_type[pc2]; */
+        /* if (pc2 >= 32) */
+        /*     pt += 7; */
 
-        zobrist_key ^= zobrist_table[pt][mv->to];
-        zobrist_key_check ^= zobrist_table_check[pt][mv->to];
+        /* zobrist_key ^= zobrist_table[pt][mv->to]; */
+        /* zobrist_key_check ^= zobrist_table_check[pt][mv->to]; */
         /* end */
     }
 
@@ -85,14 +87,14 @@ static void unmake_move(move *mv)
     piece[pc1] = mv->from;
 
     /* hash */
-    pt = piece_type[pc1];
-    if (pc1 >= 32)
-        pt += 7;
+    /* pt = piece_type[pc1]; */
+    /* if (pc1 >= 32) */
+    /*     pt += 7; */
 
-    zobrist_key ^= zobrist_table[pt][mv->from] ^
-        zobrist_table[pt][mv->to];
-    zobrist_key_check ^= zobrist_table_check[pt][mv->from] ^
-        zobrist_table_check[pt][mv->to];
+    /* zobrist_key ^= zobrist_table[pt][mv->from] ^ */
+    /*     zobrist_table[pt][mv->to]; */
+    /* zobrist_key_check ^= zobrist_table_check[pt][mv->from] ^ */
+    /*     zobrist_table_check[pt][mv->to]; */
     /* end */
 
     change_side();
@@ -122,10 +124,6 @@ static int is_game_over(int depth)
     return 0;
 }
 
-/* 带AlphaBeta剪枝的负极大值搜索
- * 极限深度：4层 */
-static int alpha_beta_search(int depth, int alpha, int beta);
-
 /* 极小窗口搜索(Minimal Window Search/PVS) */
 static int principal_variation_search(int depth, int alpha, int beta);
 
@@ -151,7 +149,8 @@ void think_depth(int depth)
     principal_variation_search(depth, -INFINITE, INFINITE);
 
     gettimeofday(&end, NULL);
-    timeuse = 1000000 * ( end.tv_sec - start.tv_sec ) + end.tv_usec - start.tv_usec;
+    timeuse = 1000000 * ( end.tv_sec - start.tv_sec ) +
+        end.tv_usec - start.tv_usec;
     timeuse /= 1000;
     
     if (best_move.from == 0) {
@@ -162,56 +161,18 @@ void think_depth(int depth)
 
         FILE * fd;
         fd = fopen("harmless.log", "a");
-        fprintf(fd, ">> bestmove = %.4s\tnode = %d\tusetime = %dms\n", (const char *)&best, node_count, timeuse);
+        fprintf(fd, ">> bestmove = %.4s\tnode = %d\tusetime = %dms\n",
+                (const char *)&best, node_count, timeuse);
         fclose(fd);
     }
 
     fflush(stdout);
 }
 
-static int alpha_beta_search(int depth, int alpha, int beta)
-{
-    int over, count, score;
-
-    over = is_game_over(depth);
-    if (over)
-        return over;
-    
-    if (depth <= 0) {
-        node_count++;
-        return evaluate();
-    }
-    
-    count = gen_all_move(depth);
-
-    int i;
-    for (i = 0; i < count; i++) {
-        
-        make_move(&move_list[depth][i]);
-        score = -alpha_beta_search(depth-1, -beta, -alpha);
-        unmake_move(&move_list[depth][i]);
-
-        /* beta剪枝 */
-        if (alpha >= beta)
-            break;
-
-        if (score > alpha) {
-            alpha = score;
-
-            /* 靠近根节点时保留最佳走法 */
-            if (depth == max_depth) {
-                best_move = move_list[depth][i];
-            }
-        }
-    }
-
-    /* 返回极大值 */
-    return alpha;
-}
-
 static int principal_variation_search(int depth, int alpha, int beta)
 {
     int score, count, over, best;
+    BYTE type;
 
     /* 检查当前节点是否已分出胜负 */
     over = is_game_over(depth);
@@ -225,17 +186,17 @@ static int principal_variation_search(int depth, int alpha, int beta)
     }
     
     /* 产生下一步所有的可能的走法 */
-    count = gen_all_move(depth);
+    count = gen_all_move(move_array[depth]);
 
     /* 产生第一个节点 */
-    make_move(&move_list[depth][0]);
+    type = make_move(&move_array[depth][0]);
     /* 使用全窗口搜索第一个节点 */
     best = -principal_variation_search(depth-1, -beta, -alpha);
-    unmake_move(&move_list[depth][0]);
+    unmake_move(&move_array[depth][0], type);
 
     if (count != 0) {
         if (depth == max_depth)
-            best_move = move_list[depth][0];
+            best_move = move_array[depth][0];
     }
     
     int i;
@@ -246,7 +207,7 @@ static int principal_variation_search(int depth, int alpha, int beta)
                 alpha = best;
             
             /* 产生子节点 */
-            make_move(&move_list[depth][i]);
+            type = make_move(&move_array[depth][i]);
             
             /* 使用极窄窗口搜索 */
             score = -principal_variation_search(depth-1, -alpha-1, -alpha);
@@ -255,16 +216,16 @@ static int principal_variation_search(int depth, int alpha, int beta)
                 /* fail high. 重新搜索 */
                 best = -principal_variation_search(depth-1, -beta, -score);
                 if (depth == max_depth)
-                    best_move = move_list[depth][i];
+                    best_move = move_array[depth][i];
                 
             } else if (score > best) {
                 /* 极窄窗口命中 */
                 best = score;
                 if (depth == max_depth)
-                    best_move = move_list[depth][i];
+                    best_move = move_array[depth][i];
             }
             /* 撤销子节点 */
-            unmake_move(&move_list[depth][i]);
+            unmake_move(&move_array[depth][i], type);
         }
     }
 

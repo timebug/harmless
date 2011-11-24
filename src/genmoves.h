@@ -17,8 +17,6 @@ extern short bishop_check[];
 extern BYTE legal_position[][256];
 extern BYTE position_mask[];
 
-extern move move_list[][128];
-
-int gen_all_move(int depth);
+int gen_all_move(move *move_array);
 
 #endif

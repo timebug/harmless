@@ -1,9 +1,5 @@
 #include "genmoves.h"
 
-static int move_count;
-
-move move_list[8][128];
-
 short king_dir[8]    = {-0x10, -0x01, +0x01, +0x10,  0,     0,	   0,	  0   };
 short advisor_dir[8] = {-0x11, -0x0f, +0x0f, +0x11,  0,	    0,	   0,	  0   };
 short bishop_dir[8]  = {-0x22, -0x1e, +0x1e, +0x22,  0,	    0,	   0,	  0   };
@@ -58,9 +54,10 @@ BYTE legal_position[2][256] = {
 
 BYTE position_mask[7] = {2, 4, 16, 1, 1, 1, 8};
 
-static int check();
+/* 检查当前局面lside方是[1]否[0]被将军 */
+static int check(int lside);
 
-static void add_move(BYTE from, BYTE to, int depth)
+static int save_move(BYTE from, BYTE to, move *move_array)
 {
     BYTE pc1, pc2;
     pc1 = board[from];
@@ -74,7 +71,7 @@ static void add_move(BYTE from, BYTE to, int depth)
         piece[pc2] = 0;
     }
 
-    int kill = check();
+    int kill = check(side);
 
     /* unmake move */
     board[from] = pc1;
@@ -85,20 +82,23 @@ static void add_move(BYTE from, BYTE to, int depth)
     }
 
     if (!kill) {
-        move_list[depth][move_count].from = from;
-        move_list[depth][move_count].to = to;
-        move_count++;
+        move_array->from = from;
+        move_array->to = to;
+        return 1;
     }
+
+    return 0;
 }
 
-int gen_all_move(int depth)
+int gen_all_move(move *move_array)
 {
     int i, j, k;
     int side_tag;
     int over_flag;
     BYTE p, next, m;
+
+    move *mv_array = move_array;
     
-    move_count = 0;
     side_tag = 16 + side * 16;
     p = piece[side_tag];
 
@@ -111,7 +111,9 @@ int gen_all_move(int depth)
         if (legal_position[side][next] & position_mask[KING]) {
 
             if(!(board[next] & side_tag)) {
-                add_move(p, next, depth);
+                if (save_move(p, next, move_array)) {
+                    move_array++;
+                }
             }
         }
     }
@@ -127,7 +129,9 @@ int gen_all_move(int depth)
 
             if (legal_position[side][next] & position_mask[ADVISOR]) {
                 if (!(board[next] & side_tag)) {
-                    add_move(p, next, depth);
+                    if (save_move(p, next, move_array)) {
+                        move_array++;
+                    }
                 }
             }
         }
@@ -147,7 +151,9 @@ int gen_all_move(int depth)
 
                 if (!board[m]) {
                     if (!(board[next] & side_tag)) {
-                        add_move(p, next, depth);
+                        if (save_move(p, next, move_array)) {
+                            move_array++;
+                        }
                     }
                 }
             }
@@ -168,7 +174,9 @@ int gen_all_move(int depth)
 
                 if (!board[m]) {
                     if (!(board[next] & side_tag)) {
-                        add_move(p, next, depth);
+                        if (save_move(p, next, move_array)) {
+                            move_array++;
+                        }
                     }
                 }
             }
@@ -188,11 +196,19 @@ int gen_all_move(int depth)
                 if (!(legal_position[side][next] & position_mask[ROOK])) break;
                         
                 if (!board[next]) {
-                    add_move(p, next, depth);
+                    
+                    if (save_move(p, next, move_array)) {
+                        move_array++;
+                    }
+                    
                 } else if (board[next] & side_tag) {
                     break;
                 } else {
-                    add_move(p, next, depth);
+                    
+                    if (save_move(p, next, move_array)) {
+                        move_array++;
+                    }
+                    
                     break;
                 }
             }
@@ -216,7 +232,9 @@ int gen_all_move(int depth)
                 if (!board[next]) {
                     
                     if (!over_flag) {
-                        add_move(p, next, depth);
+                        if (save_move(p, next, move_array)) {
+                            move_array++;
+                        }
                     }
                                         
                 } else {
@@ -224,7 +242,9 @@ int gen_all_move(int depth)
                         over_flag = 1;
                     } else {
                         if (!(board[next] & side_tag)) {
-                            add_move(p, next, depth);
+                            if (save_move(p, next, move_array)) {
+                                move_array++;
+                            }
                         }
 
                         break;
@@ -245,20 +265,22 @@ int gen_all_move(int depth)
 
             if (legal_position[side][next] & position_mask[PAWN]) {
                 if (!(board[next] & side_tag)) {
-                    add_move(p, next, depth);
+                    if (save_move(p, next, move_array)) {
+                        move_array++;
+                    }
                 }
             }
         }
     }
 
-    return move_count;
+    return move_array - mv_array;
 }
 
-static int check()
+static int check(int lside)
 {
     BYTE w_king, b_king;
     BYTE p, q;
-    int side_tag = 32 - side * 16;
+    int side_tag = 32 - lside * 16;
     int kill, i, offset;
 
     w_king = piece[16];
@@ -296,7 +318,7 @@ static int check()
 
             if (next != q) continue;
 
-            if (legal_position[1-side][next] & position_mask[KNIGHT]) {
+            if (legal_position[1-lside][next] & position_mask[KNIGHT]) {
                 m = p + knight_check[k];
 
                 if (!board[m]) return 1;
@@ -388,9 +410,9 @@ static int check()
         if (!p) continue;
 
         for (k = 0; k < 3; ++k) {
-            next = p + pawn_dir[1-side][k];
+            next = p + pawn_dir[1-lside][k];
 
-            if ((next == q) && (legal_position[1-side][next] & position_mask[PAWN])) {
+            if ((next == q) && (legal_position[1-lside][next] & position_mask[PAWN])) {
                 return 1;
             }
         }
@@ -398,3 +420,4 @@ static int check()
 
     return 0;
 }
+
