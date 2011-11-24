@@ -276,6 +276,194 @@ int gen_all_move(move *move_array)
     return move_array - mv_array;
 }
 
+int gen_cap_move(move *move_array)
+{
+    int i, j, k;
+    int side_tag;               /* 本方标记 */
+    int op_side_tag;            /* 对方标记 */
+    int over_flag;              /* 炮翻山标记 */
+    BYTE p, next, m;
+
+    move *mv_array = move_array;
+    
+    side_tag = 16 + side * 16;
+    op_side_tag = 48 - side_tag;
+    
+    p = piece[side_tag];
+
+    if (!p) return 0;
+
+    /* 将(帅)的走法 */
+    for (k = 0; k < 4; ++k) {
+        next = p + king_dir[k];
+
+        if (legal_position[side][next] & position_mask[KING]) {
+
+            /* 目标位置上有对方棋子 */
+            if(board[next] & op_side_tag) {
+                if (save_move(p, next, move_array)) {
+                    move_array++;
+                }
+            }
+        }
+    }
+
+    /* 士(仕)的走法 */
+    for (i = 1; i <= 2; ++i) {
+        p = piece[side_tag + i];
+
+        if (!p) continue;
+                
+        for (k = 0; k < 4; ++k) {
+            next = p + advisor_dir[k];
+
+            if (legal_position[side][next] & position_mask[ADVISOR]) {
+                
+                if (board[next] & op_side_tag) {
+                    if (save_move(p, next, move_array)) {
+                        move_array++;
+                    }
+                }
+            }
+        }
+    }
+
+    /* 象(相)的走法 */
+    for (i = 3; i <= 4; ++i) {
+        p = piece[side_tag + i];
+
+        if (!p) continue;
+                
+        for (k = 0; k < 4; ++k) {
+            next = p + bishop_dir[k];
+
+            if (legal_position[side][next] & position_mask[BISHOP]) {
+                m = p + bishop_check[k];
+
+                /* 相眼位置无子 */
+                if (!board[m]) {
+                    if (board[next] & op_side_tag) {
+                        if (save_move(p, next, move_array)) {
+                            move_array++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /* 马的走法 */
+    for (i = 5; i <= 6; ++i) {
+        p = piece[side_tag + i];
+
+        if (!p) continue;
+                
+        for (k = 0; k < 8; ++k) {
+            next = p + knight_dir[k];
+
+            if (legal_position[side][next] & position_mask[KNIGHT]) {
+                m = p + knight_check[k];
+                
+                /* 马脚位置无子 */
+                if (!board[m]) {
+                    if (board[next] & op_side_tag) {
+                        if (save_move(p, next, move_array)) {
+                            move_array++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /* 车的走法 */
+    for (i = 7; i <= 8; ++i) {
+        p = piece[side_tag + i];
+
+        if (!p) continue;
+                
+        for (k = 0; k < 4; ++k) {
+            for (j = 1; j < 10; ++j) {
+                next = p + j * rook_dir[k];
+
+                if (!(legal_position[side][next] & position_mask[ROOK])) break;
+
+                if (!board[next]) { /* 目标位置上无子 */
+                    /* 不做处理 */
+                    
+                } else if (board[next] & side_tag) { /* 目标位置上有本方棋子 */
+                    break;
+                    
+                } else { /* 目标位置上有对方棋子 */
+                    if (save_move(p, next, move_array)) {
+                        move_array++;
+                    }
+                    
+                    break;
+                }
+            }
+        }
+    }
+
+    /* 炮的走法 */
+    for (i = 9; i <= 10; ++i) {
+        p = piece[side_tag + i];
+
+        if (!p) continue;
+
+        for (k = 0; k < 4; ++k) {
+            over_flag = 0;
+
+            for (j = 1; j < 10; ++j) {
+                next = p + j * cannon_dir[k];
+
+                if (!(legal_position[side][next] & position_mask[CANNON])) break;
+
+                if (!board[next]) { /* 目标位置上无子 */
+                    /* 不做处理 */
+                    
+                } else {
+                    if (!over_flag) {
+                        over_flag = 1;
+                        
+                    } else {    /* 已翻山 */
+                        
+                        if (board[next] & op_side_tag) {
+                            if (save_move(p, next, move_array)) {
+                                move_array++;
+                            }
+                        }
+
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    /* 兵(卒)的走法 */
+    for (i = 11; i <= 15; ++i) {
+        p = piece[side_tag + i];
+
+        if (!p) continue;
+        
+        for (k = 0; k < 3; ++k) {
+            next = p + pawn_dir[side][k];
+
+            if (legal_position[side][next] & position_mask[PAWN]) {
+                
+                if (board[next] & op_side_tag) {
+                    if (save_move(p, next, move_array)) {
+                        move_array++;
+                    }
+                }
+            }
+        }
+    }
+
+    return move_array - mv_array;
+}
+
 static int check(int lside)
 {
     BYTE w_king, b_king;
@@ -420,4 +608,3 @@ static int check(int lside)
 
     return 0;
 }
-
