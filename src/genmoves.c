@@ -54,8 +54,17 @@ BYTE legal_position[2][256] = {
 
 BYTE position_mask[7] = {2, 4, 16, 1, 1, 1, 8};
 
+/* 吃子价值表 */
+static BYTE cap_values[48] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    8, 2, 2, 2, 2, 4, 4, 6, 6, 4, 4, 2, 2, 2, 2, 2,
+    8, 2, 2, 2, 2, 4, 4, 6, 6, 4, 4, 2, 2, 2, 2, 2
+};
+
 /* 检查当前局面lside方是[1]否[0]被将军 */
 static int check(int lside);
+/* 检测lside一方能[1]否[0]保护位置dst */
+static int protected(int lside, BYTE dst);
 
 static int save_move(BYTE from, BYTE to, move *move_array)
 {
@@ -197,7 +206,8 @@ int gen_all_move(move *move_array)
             for (j = 1; j < 10; ++j) {
                 next = p + j * rook_dir[k];
 
-                if (!(legal_position[side][next] & position_mask[ROOK])) break;
+                if (!(legal_position[side][next] &
+                      position_mask[ROOK])) break;
                         
                 if (!board[next]) {
                     
@@ -231,7 +241,8 @@ int gen_all_move(move *move_array)
             for (j = 1; j < 10; ++j) {
                 next = p + j * cannon_dir[k];
 
-                if (!(legal_position[side][next] & position_mask[CANNON])) break;
+                if (!(legal_position[side][next] &
+                      position_mask[CANNON])) break;
 
                 if (!board[next]) {
                     
@@ -290,6 +301,8 @@ int gen_cap_move(move *move_array)
     BYTE p;                     /* 棋子位置 */
     BYTE next;                  /* 下一步可能走的位置 */
     BYTE m;                     /* 象眼马腿位置 */
+    BYTE op_piece;              /* 被吃的对方棋子 */
+    BYTE value;                 /* 价值 */
 
     move *mv_array = move_array;
     
@@ -305,10 +318,16 @@ int gen_cap_move(move *move_array)
         next = p + king_dir[k];
 
         if (legal_position[side][next] & position_mask[KING]) {
-
+            
             /* 目标位置上有对方棋子 */
             if(board[next] & op_side_tag) {
+                op_piece = board[next];
+                
                 if (save_move(p, next, move_array)) {
+                    value = cap_values[op_piece] -
+                        (protected(1-side, next) ? KING_VALUE : 0);
+                    
+                    move_array->capture = value > 0 ? value : 0;
                     move_array++;
                 }
             }
@@ -327,7 +346,13 @@ int gen_cap_move(move *move_array)
             if (legal_position[side][next] & position_mask[ADVISOR]) {
                 
                 if (board[next] & op_side_tag) {
+                    op_piece = board[next];
+                    
                     if (save_move(p, next, move_array)) {
+                        value = cap_values[op_piece] -
+                            (protected(1-side, next) ? ADVISOR_VALUE : 0);
+                    
+                        move_array->capture = value > 0 ? value : 0;
                         move_array++;
                     }
                 }
@@ -350,7 +375,14 @@ int gen_cap_move(move *move_array)
                 /* 象眼位置无子 */
                 if (!board[m]) {
                     if (board[next] & op_side_tag) {
+                        
+                        op_piece = board[next];
+                        
                         if (save_move(p, next, move_array)) {
+                            value = cap_values[op_piece] -
+                                (protected(1-side, next) ? BISHOP_VALUE : 0);
+                    
+                            move_array->capture = value > 0 ? value : 0;
                             move_array++;
                         }
                     }
@@ -374,7 +406,14 @@ int gen_cap_move(move *move_array)
                 /* 马腿位置无子 */
                 if (!board[m]) {
                     if (board[next] & op_side_tag) {
+                        
+                        op_piece = board[next];
+                        
                         if (save_move(p, next, move_array)) {
+                            value = cap_values[op_piece] -
+                                (protected(1-side, next) ? KNIGHT_VALUE : 0);
+                    
+                            move_array->capture = value > 0 ? value : 0;
                             move_array++;
                         }
                     }
@@ -393,8 +432,9 @@ int gen_cap_move(move *move_array)
             for (j = 1; j < 10; ++j) {
                 next = p + j * rook_dir[k];
 
-                if (!(legal_position[side][next] & position_mask[ROOK])) break;
-
+                if (!(legal_position[side][next] &
+                      position_mask[ROOK])) break;
+                
                 if (!board[next]) { /* 目标位置上无子 */
                     /* 不做处理 */
                     
@@ -402,7 +442,13 @@ int gen_cap_move(move *move_array)
                     break;
                     
                 } else { /* 目标位置上有对方棋子 */
+                    op_piece = board[next];
+                    
                     if (save_move(p, next, move_array)) {
+                        value = cap_values[op_piece] -
+                            (protected(1-side, next) ? ROOK_VALUE : 0);
+                        
+                        move_array->capture = value > 0 ? value : 0;
                         move_array++;
                     }
                     
@@ -424,7 +470,8 @@ int gen_cap_move(move *move_array)
             for (j = 1; j < 10; ++j) {
                 next = p + j * cannon_dir[k];
 
-                if (!(legal_position[side][next] & position_mask[CANNON])) break;
+                if (!(legal_position[side][next] &
+                      position_mask[CANNON])) break;
 
                 if (!board[next]) { /* 目标位置上无子 */
                     /* 不做处理 */
@@ -436,7 +483,13 @@ int gen_cap_move(move *move_array)
                     } else {    /* 已翻山 */
                         
                         if (board[next] & op_side_tag) {
+                            op_piece = board[next];
+                            
                             if (save_move(p, next, move_array)) {
+                                value = cap_values[op_piece] -
+                                    (protected(1-side, next) ? CANNON_VALUE : 0);
+                                
+                                move_array->capture = value > 0 ? value : 0;
                                 move_array++;
                             }
                         }
@@ -460,7 +513,13 @@ int gen_cap_move(move *move_array)
             if (legal_position[side][next] & position_mask[PAWN]) {
                 
                 if (board[next] & op_side_tag) {
+                    op_piece = board[next];
+                    
                     if (save_move(p, next, move_array)) {
+                        value = cap_values[op_piece] -
+                                    (protected(1-side, next) ? PAWN_VALUE : 0);
+                                
+                        move_array->capture = value > 0 ? value : 0;
                         move_array++;
                     }
                 }
@@ -579,7 +638,8 @@ int gen_non_cap_move(move *move_array)
             for (j = 1; j < 10; ++j) {
                 next = p + j * rook_dir[k];
 
-                if (!(legal_position[side][next] & position_mask[ROOK])) break;
+                if (!(legal_position[side][next] &
+                      position_mask[ROOK])) break;
                         
                 if (!board[next]) {
                     
@@ -609,7 +669,8 @@ int gen_non_cap_move(move *move_array)
             for (j = 1; j < 10; ++j) {
                 next = p + j * cannon_dir[k];
 
-                if (!(legal_position[side][next] & position_mask[CANNON])) break;
+                if (!(legal_position[side][next] &
+                      position_mask[CANNON])) break;
 
                 if (!board[next]) {
                     
@@ -664,7 +725,6 @@ static int check(int lside)
 
     /* 检测将帅是否照面 */
     kill = 1;
-    
     if (w_king%16 == b_king%16) {
         for (w_king = w_king-16; w_king != b_king; w_king = w_king-16) {
             if (board[w_king]) {
@@ -691,7 +751,6 @@ static int check(int lside)
             next = p + knight_dir[k];
 
             if (next != q) continue;
-
             if (legal_position[1-lside][next] & position_mask[KNIGHT]) {
                 m = p + knight_check[k];
 
@@ -735,7 +794,6 @@ static int check(int lside)
     }
 
     /* 检测是否被炮攻击 */
-
     for (i = 9; i <= 10; ++i) {
         int over_flag = 0;
         
@@ -786,7 +844,190 @@ static int check(int lside)
         for (k = 0; k < 3; ++k) {
             next = p + pawn_dir[1-lside][k];
 
-            if ((next == q) && (legal_position[1-lside][next] & position_mask[PAWN])) {
+            if ((next == q) &&
+                (legal_position[1-lside][next] & position_mask[PAWN])) {
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+static int protected(int lside, BYTE dst)
+{
+    int i, k, r, offset;
+    int side_tag = 16 + lside * 16; /* lside方标记 */
+    int over_flag;
+    BYTE p;
+    BYTE next;
+    BYTE m;
+
+    /* 判断棋子是否过河，未过河受将、士、象保护 */
+    if (lside == 0 ? (dst & 0x80) != 0 : (dst & 0x80) == 0) {
+        /* 检测是否被将保护 */
+        p = piece[side_tag];
+                
+        if (p && p != dst) {
+            for (k = 0; k < 4; ++k) {
+                next = p + king_dir[k];
+
+                if (next != dst) continue;
+                if (legal_position[lside][next] & position_mask[KING]) {
+                    return 1;
+                }
+            }
+        }
+
+        /* 检测是否被士保护 */
+        for (i = 1; i <= 2; ++i) {
+            p = piece[side_tag + i];
+            
+            if (!p || p == dst) continue;
+
+            for (k = 0; k < 4; ++k) {
+                next = p + advisor_dir[k];
+
+                if (next != dst) continue;
+                if (legal_position[lside][next] & position_mask[ADVISOR]) {
+                    return 1;
+                }
+            }
+        }
+
+        /* 检测是否被象保护 */
+        for (i = 3; i <= 4; ++i) {
+            p = piece[side_tag + i];
+            
+            if (!p || p == dst) continue;
+
+            for (k = 0; k < 4; ++k) {
+                next = p + bishop_dir[k];
+
+                if (next != dst) continue;
+                if (legal_position[lside][next] & position_mask[BISHOP]) {
+                    m = p + bishop_check[k];
+                    
+                    if (!board[m]) {
+                        return 1;
+                    }
+                }
+            }
+        }
+    }
+
+    /* 检测是否被马保护 */
+    for (i = 5; i <= 6; ++i) {
+        p = piece[side_tag + i];
+        
+        if (!p || p == dst) continue;
+
+        for (k = 0; k < 8; ++k) {
+            next = p + knight_dir[k];
+
+            if (next != dst) continue;
+            if (legal_position[lside][next] & position_mask[KNIGHT]) {
+                m = p + knight_check[k];
+
+                if (!board[m]) {
+                    return 1;
+                }
+            }
+        }
+    }
+
+
+    /* 检测是否被车保护 */
+    for (i = 7; i <= 8; ++i) {
+        r = 1;
+        
+        p = piece[side_tag + i];
+        
+        if (!p || p == dst) continue;
+
+        if (p%16 == dst%16) {
+            offset = (p > dst ? -16 : 16);
+
+            for (p = p+offset; p != dst; p = p+offset) {
+                if (board[p]) {
+                    r = 0;
+                    break;
+                }
+            }
+
+            if (r) return 1;
+                        
+        } else if (p/16 == dst/16) {
+            offset = (p > dst ? -1 : 1);
+
+            for (p = p+offset; p != dst; p = p+offset) {
+                if (board[p]) {
+                    r = 0;
+                    break;
+                }
+            }
+
+            if (r) return 1;
+        }
+    }
+
+    /* 检测是否被炮保护 */
+    for (i = 9; i <= 10; ++i) {
+        over_flag = 0;
+        
+        p = piece[side_tag + i];
+        
+        if (!p || p == dst) continue;
+
+        if (p%16 == dst%16) {
+            offset = (p > dst ? -16 : 16);
+
+            for (p = p+offset; p != dst; p = p+offset) {
+                if (board[p]) {
+                    if (!over_flag) {
+                        over_flag = 1;
+                    } else {
+                        over_flag = 2;
+                        break;
+                    }
+                }
+            }
+
+            if (over_flag == 1) {
+                return 1;
+            }
+                        
+        } else if (p/16 == dst/16) {
+            offset = (p > dst ? -1 : 1);
+
+            for (p = p+offset; p != dst; p = p+offset) {
+                if (board[p]) {
+                    if (!over_flag) {
+                        over_flag = 1;
+                    } else {
+                        over_flag = 2;
+                        break;
+                    }
+                }
+            }
+
+            if (over_flag == 1) {
+                return 1;
+            }                        
+        }
+    }
+
+    /* 检测是否被兵保护 */
+    for (i = 11; i <= 15; ++i) {
+        p = piece[side_tag + i];
+
+        if (!p || p == dst) continue;
+
+        for (k = 0; k < 3; ++k) {
+            next = p + pawn_dir[lside][k];
+
+            if (next != dst) continue;
+            if (legal_position[lside][next] & position_mask[PAWN]) {
                 return 1;
             }
         }

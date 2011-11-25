@@ -4,6 +4,15 @@
 #include "base.h"
 #include "position.h"
 
+/* 吃子走法价值 */
+#define KING_VALUE 8
+#define ADVISOR_VALUE 2
+#define BISHOP_VALUE 2
+#define KNIGHT_VALUE 4
+#define ROOK_VALUE 6
+#define CANNON_VALUE 4
+#define PAWN_VALUE 2
+
 extern short king_dir[];
 extern short advisor_dir[];
 extern short bishop_dir[];

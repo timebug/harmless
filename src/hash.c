@@ -25,7 +25,7 @@ static INT64 rand64()
         ((INT64)rand() << 45) ^ ((INT64)rand() << 60);    
 }
 
-void init_zobrist()
+static void init_zobrist()
 {
     int i, j;
     srand(time(NULL));
@@ -45,11 +45,18 @@ void init_zobrist()
     }
 }
 
+void reset_hash_table()
+{
+    memset(hash_table, 0, HASH_TABLE_SIZE * sizeof(hash_node));    
+}
+
 void new_hash_table()
 {
+    init_zobrist();
+    
     hash_mask = HASH_TABLE_SIZE - 1;
     hash_table = (hash_node *)malloc(HASH_TABLE_SIZE * sizeof(hash_node));
-    memset(hash_table, 0, HASH_TABLE_SIZE * sizeof(hash_node));
+    reset_hash_table();
 }
 
 void del_hash_table()
@@ -58,7 +65,7 @@ void del_hash_table()
         free(hash_table);
 }
 
-int save_hash_table(int value, int depth, data_type type)
+void save_hash_table(int value, int depth, data_type type)
 {
     int add = zobrist_key & hash_mask;
     hash_node *pnode = &hash_table[add];

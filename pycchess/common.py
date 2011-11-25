@@ -27,7 +27,7 @@ LOCAL, OTHER = 0, 1
 NETWORK, AI = 0, 1
 KING, ADVISOR, BISHOP, KNIGHT, ROOK, CANNON, PAWN, NONE = 0, 1, 2, 3, 4, 5, 6, -1
 
-AI_SEARCH_DEPTH = 4
+AI_SEARCH_DEPTH = 6
 
 image_path = 'image/'
 board_image = 'cchessboard.png'
@@ -44,6 +44,7 @@ chessman_image = ['king.png',
 move_sound = 'sounds/MOVE.WAV'
 
 fen_str = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1'
+# fen_str = '2ba1a3/1R7/2Ck5/p7p/2p1N4/4P4/P1P3P1P/4B4/7c1/3AKAB2 b - - 0 1'
 
 king_dir = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 advisor_dir = [(-1, -1), (1, -1), (-1, 1), (1, 1)]

@@ -4,8 +4,8 @@
 #define INT32 unsigned long
 #define INT64 unsigned long long
 
-/* 设置哈希表大小，默认32MB */
-#define HASH_TABLE_SIZE 1024*1024*32
+/* 设置哈希表大小，默认4MB */
+#define HASH_TABLE_SIZE 1024*1024*4
 
 #define NOVALUE 66666
 
@@ -38,7 +38,7 @@ extern INT64 zobrist_key_check;
 extern INT32 hash_mask;
 extern hash_node *hash_table;
 
-void init_zobrist();
+void reset_hash_table();
 void new_hash_table();
 void del_hash_table();
 void save_hash_table(int value, int depth, data_type type);

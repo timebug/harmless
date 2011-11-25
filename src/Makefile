@@ -1,4 +1,4 @@
-objects = pipe.o ucci.o position.o genmoves.o evaluate.o search.o harmless.o
+objects = pipe.o ucci.o position.o genmoves.o movesort.o evaluate.o search.o hash.o harmless.o
 
 harmless : $(objects)
 	cc -g -o harmless ${objects}
@@ -7,9 +7,13 @@ position.o : base.h position.h position.c
 	cc -g -c position.c
 genmoves.o : base.h position.h genmoves.h genmoves.c
 	cc -g -c genmoves.c
+movesort.o : base.h position.h genmoves.h movesort.h movesort.c
+	cc -g -c movesort.c
 evaluate.o : base.h position.h genmoves.h evaluate.h evaluate.c
 	cc -g -c evaluate.c
-search.o : base.h position.h genmoves.h evaluate.h search.h search.c
+hash.o : hash.h hash.c
+	cc -g -c hash.c
+search.o : base.h position.h genmoves.h movesort.h evaluate.h search.h hash.h search.c
 	cc -g -c search.c
 pipe.o : pipe.h pipe.c
 	cc -g -c pipe.c

@@ -75,6 +75,9 @@ while True:
             if chessboard.mode is NETWORK:
                 net = chessnet()
                 net.send_move('over')
+            if chessboard.mode is AI:
+                chessboard.fin.write("quit\n");
+                chessboard.fin.flush();
             exit()
         if event.type == MOUSEBUTTONDOWN:
             x, y = pygame.mouse.get_pos()
