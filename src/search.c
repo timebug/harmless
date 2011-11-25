@@ -212,6 +212,35 @@ void think_depth(int depth)
     fflush(stdout);
 }
 
+/* 静态搜索函数 */
+static int quiescence_search(int alpha, int beta)
+{
+    int score = evaluate();
+    if (score >= beta)
+        return score;
+
+    move move_arr[128];
+    int count = cap_move_array_init(move_arr);
+    if (count == 0)
+        return NO_BEST_MOVE;
+    
+    int i;
+    for (i = 0; i < count; i++) {
+        make_move(&move_arr[i]);
+        score = -quiescence_search(-beta, -alpha);
+        unmake_move(&move_arr[i]);
+
+        if (score >= alpha) {
+            alpha = score;
+            /* beta剪枝 */
+            if (score >= beta)
+                break;
+        }
+    }
+
+    return score;
+}
+
 static int nega_scout(int depth, int alpha, int beta)
 {
     int score, count;
@@ -232,7 +261,7 @@ static int nega_scout(int depth, int alpha, int beta)
     }
 
     if (depth <= 0) {
-        score = evaluate();
+        score = quiescence_search(alpha, beta);
         eval_node_count++;
         save_hash_table(score, depth, HASH_EXACT);
         return score;
