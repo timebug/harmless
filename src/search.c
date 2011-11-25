@@ -1,16 +1,42 @@
 #include <stdio.h>
+#include <string.h>
 #include <sys/time.h>
 #include <unistd.h>
 
 #include "search.h"
 
 static move move_array[MAX_SEARCH_DEPTH][128]; /* 所有走法 */
+static INT32 hash_history[MAX_SEARCH_DEPTH];
+
+/* 记录4步历史最佳走法，避免出现长将等循环走法 */
+static move move_history[4];
+static move best_move;
+static move better_move;
+static move good_move;
 
 static int max_depth;
-static move best_move;
 
 static int eval_node_count;
 static int hash_node_count;
+
+static int cmp_move(move m1, move m2) {
+    if (m1.to == m2.to && m1.from == m2.from) return 1;
+    else return 0;
+}
+
+static void init_search()
+{
+    best_move.from = 0;
+    best_move.to = 0;
+
+    reset_hash_table();
+    reset_history();
+
+    eval_node_count = 0;
+    hash_node_count = 0;
+
+    memset(hash_history, NOVALUE, sizeof(hash_history));
+}
 
 static void change_side()
 {
@@ -108,53 +134,81 @@ static int principal_variation_search(int depth, int alpha, int beta);
 /* 极限深度：6层 */
 static int nega_scout(int depth, int alpha, int beta);
 
-/* TODO: 循环检测 */
 /* TODO: 迭代深化 */
 /* TODO: 静态搜索 */
 /* TODO: 增加开局库 */
-/* fix: 最佳走法为空时提前认输，此时仍有子可以动 */
-
 void think_depth(int depth)
 {
+    init_search();
+    
     long best;
-    best_move.from = 0;
-    best_move.to = 0;
-    
     max_depth = depth;
+
+    int count = move_array_init(move_array[MAX_SEARCH_DEPTH - 1]);
     
-    reset_hash_table();
-    reset_history();
+    if (count != 0) {
+        best_move = better_move = good_move =
+            move_array[MAX_SEARCH_DEPTH - 1][0];
+    } else {
+        printf("nobestmove\n");
+        fflush(stdout);
+        return;
+    }
 
     struct timeval start, end;
     int timeuse;
-    
-    eval_node_count = 0;
-    hash_node_count = 0;
-    
     gettimeofday(&start, NULL);
     
     /* principal_variation_search(depth, -INFINITE, INFINITE); */
-    nega_scout(depth, -INFINITE, INFINITE);
+    nega_scout(max_depth, -INFINITE, INFINITE);
 
     gettimeofday(&end, NULL);
     timeuse = 1000000 * ( end.tv_sec - start.tv_sec ) +
         end.tv_usec - start.tv_usec;
     timeuse /= 1000;
-    
-    if (best_move.from == 0) {
-        printf("nobestmove\n");
-    } else {
-        best = move_to_str(best_move);
-        printf("bestmove %.4s\n", (const char *)&best);
 
-        FILE * fd;
-        fd = fopen("harmless.log", "a");
-        fprintf(fd, "bestmove = %.4s eval_node = %-8d hash_node = %-8d "
-                "usetime = %dms\n",
-                (const char *)&best, eval_node_count, hash_node_count, timeuse);
-        fclose(fd);
+    int flag = 0;
+    if (cmp_move(move_history[0] , move_history[2]) &&
+        cmp_move(move_history[2] , best_move)) {
+        if (cmp_move(move_history[0] , move_history[2]) &&
+            cmp_move(move_history[2] , better_move)) {
+            
+            move_history[0] = move_history[1];
+            move_history[1] = move_history[2];
+            move_history[2] = move_history[3];
+            move_history[3] = good_move;
+            best = move_to_str(good_move);
+
+            flag = 1;
+        } else {
+            move_history[0] = move_history[1];
+            move_history[1] = move_history[2];
+            move_history[2] = move_history[3];
+            move_history[3] = better_move;
+            best = move_to_str(better_move);
+
+            flag = 2;
+        }
+    } else {
+        move_history[0] = move_history[1];
+        move_history[1] = move_history[2];
+        move_history[2] = move_history[3];
+        move_history[3] = best_move;
+        best = move_to_str(best_move);
+
+        flag = 3;
     }
 
+    printf("bestmove %.4s\n", (const char *)&best);
+    
+    FILE * fd;
+    fd = fopen("harmless.log", "a");
+    if (flag == 1) fprintf(fd, "goodmove =");
+    else if (flag == 2) fprintf(fd, "bettermove =");
+    else fprintf(fd, "bestmove =");
+    fprintf(fd, " %.4s eval_node = %-8d hash_node = %-8d usetime = %dms\n",
+            (const char *)&best, eval_node_count, hash_node_count, timeuse);
+    fclose(fd);
     fflush(stdout);
 }
 
@@ -162,6 +216,14 @@ static int nega_scout(int depth, int alpha, int beta)
 {
     int score, count;
     int a, b, t, i;
+
+    /* 用hash记录避免重复走法 */
+    hash_history[depth] = zobrist_key;
+    for (i = max_depth; i > depth; i-- ) {
+        if (hash_history[i] == hash_history[depth]) {
+            return NO_BEST_MOVE;
+        }
+    }
 
     score = read_hash_table(depth, alpha, beta);
     if (score != NOVALUE) {
@@ -177,6 +239,9 @@ static int nega_scout(int depth, int alpha, int beta)
     }
 
     count = move_array_init(move_array[depth]);
+    if (count == 0) {
+        return NO_BEST_MOVE;
+    }
 
     int best = -1;
     a = alpha;
@@ -185,7 +250,6 @@ static int nega_scout(int depth, int alpha, int beta)
 
     for (i = 0; i < count; i++) {
         make_move(&move_array[depth][i]);
-        
         t = -nega_scout(depth-1, -b, -a);
         
         if (t > a && t < beta && i > 0) {
@@ -194,6 +258,8 @@ static int nega_scout(int depth, int alpha, int beta)
             eval_is_exact = 1;
             
             if (depth == max_depth) {
+                good_move = better_move;
+                better_move = best_move;
                 best_move = move_array[depth][i];
             }
             best = i;
@@ -206,6 +272,8 @@ static int nega_scout(int depth, int alpha, int beta)
             a = t;
             
             if (depth == max_depth) {
+                good_move = better_move;
+                better_move = best_move;
                 best_move = move_array[depth][i];
             }
         }
@@ -219,7 +287,9 @@ static int nega_scout(int depth, int alpha, int beta)
         b = a + 1;
     }
 
-    save_history(&move_array[depth][best], depth);
+    if (best != -1) {
+        save_history(&move_array[depth][best], depth);
+    }
 
     if (eval_is_exact)
         save_hash_table(a, depth, HASH_EXACT);

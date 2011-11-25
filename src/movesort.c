@@ -70,3 +70,11 @@ int move_array_init(move *move_array)
 
     return count;
 }
+
+int cap_move_array_init(move *move_array)
+{
+    int n;
+    n = gen_cap_move(move_array);
+    quicksort(move_array, 0, n-1);
+    return n;
+}

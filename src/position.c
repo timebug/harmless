@@ -135,6 +135,8 @@ void arr_to_fen(char *fen_str)
 
 void fen_to_arr(const char *fen_str)
 {
+    clear_board();
+        
     int i, j, k;
     int r_pc[7] = {16, 17, 19, 21, 23, 25, 27};
     int b_pc[7] = {32, 33, 35, 37, 39, 41, 43};

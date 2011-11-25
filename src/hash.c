@@ -47,7 +47,7 @@ static void init_zobrist()
 
 void reset_hash_table()
 {
-    memset(hash_table, 0, HASH_TABLE_SIZE * sizeof(hash_node));    
+    memset(hash_table, 0, HASH_TABLE_SIZE * sizeof(hash_node));
 }
 
 void new_hash_table()

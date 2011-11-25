@@ -6,8 +6,8 @@
 
 /* 设置哈希表大小，默认4MB */
 #define HASH_TABLE_SIZE 1024*1024*4
-
-#define NOVALUE 66666
+/* 表示当前局面在置换表中不存在 */
+#define NOVALUE -66666
 
 typedef enum {
     HASH_EXACT,
