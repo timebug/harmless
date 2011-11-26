@@ -5,7 +5,6 @@
 #include "position.h"
 #include "genmoves.h"
 
-
 #define HISTORY_SIZE 65536
 
 /* 历史表 */

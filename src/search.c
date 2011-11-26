@@ -6,7 +6,6 @@
 #include "search.h"
 
 static move move_array[MAX_SEARCH_DEPTH][128]; /* 所有走法 */
-static INT32 hash_history[MAX_SEARCH_DEPTH];
 
 /* 记录4步历史最佳走法，避免出现长将等循环走法 */
 static move move_history[4];
@@ -18,6 +17,10 @@ static int max_depth;
 
 static int eval_node_count;
 static int hash_node_count;
+static int dead_node_count;
+
+/* 当前搜索步数 */
+int cur_step;
 
 static int cmp_move(move m1, move m2) {
     if (m1.to == m2.to && m1.from == m2.from) return 1;
@@ -26,6 +29,8 @@ static int cmp_move(move m1, move m2) {
 
 static void init_search()
 {
+    cur_step = 0;
+    
     best_move.from = 0;
     best_move.to = 0;
 
@@ -34,18 +39,7 @@ static void init_search()
 
     eval_node_count = 0;
     hash_node_count = 0;
-
-    memset(hash_history, NOVALUE, sizeof(hash_history));
-}
-
-static void change_side()
-{
-    side = 1 - side;
-
-    /* hash */
-    zobrist_key ^= zobrist_player;
-    zobrist_key_check ^= zobrist_player_check;
-    /* end */
+    dead_node_count = 0;
 }
 
 static void make_move(move *mv)
@@ -86,6 +80,8 @@ static void make_move(move *mv)
     /* end */
 
     change_side();
+
+    cur_step++;
 }
 
 static void unmake_move(move *mv)
@@ -124,6 +120,8 @@ static void unmake_move(move *mv)
     /* end */
 
     change_side();
+
+    cur_step--;
 }
 
 /* 极小窗口搜索(Minimal Window Search/PVS) */
@@ -135,7 +133,6 @@ static int principal_variation_search(int depth, int alpha, int beta);
 static int nega_scout(int depth, int alpha, int beta);
 
 /* TODO: 迭代深化 */
-/* TODO: 静态搜索 */
 /* TODO: 增加开局库 */
 void think_depth(int depth)
 {
@@ -149,6 +146,7 @@ void think_depth(int depth)
     if (count != 0) {
         best_move = better_move = good_move =
             move_array[MAX_SEARCH_DEPTH - 1][0];
+        
     } else {
         printf("nobestmove\n");
         fflush(stdout);
@@ -200,16 +198,16 @@ void think_depth(int depth)
     }
 
     printf("bestmove %.4s\n", (const char *)&best);
+    fflush(stdout);
     
     FILE * fd;
     fd = fopen("harmless.log", "a");
     if (flag == 1) fprintf(fd, "goodmove =");
     else if (flag == 2) fprintf(fd, "bettermove =");
     else fprintf(fd, "bestmove =");
-    fprintf(fd, " %.4s eval_node = %-8d hash_node = %-8d usetime = %dms\n",
-            (const char *)&best, eval_node_count, hash_node_count, timeuse);
+    fprintf(fd, " %.4s eval_node = %-8d hash_node = %-8d dead_node = %-8d usetime = %dms\n",
+            (const char *)&best, eval_node_count, hash_node_count, dead_node_count, timeuse);
     fclose(fd);
-    fflush(stdout);
 }
 
 /* 静态搜索函数 */
@@ -222,7 +220,7 @@ static int quiescence_search(int alpha, int beta)
     move move_arr[128];
     int count = cap_move_array_init(move_arr);
     if (count == 0)
-        return NO_BEST_MOVE;
+        return -INFINITE + cur_step;
     
     int i;
     for (i = 0; i < count; i++) {
@@ -246,14 +244,6 @@ static int nega_scout(int depth, int alpha, int beta)
     int score, count;
     int a, b, t, i;
 
-    /* 用hash记录避免重复走法 */
-    hash_history[depth] = zobrist_key;
-    for (i = max_depth; i > depth; i-- ) {
-        if (hash_history[i] == hash_history[depth]) {
-            return NO_BEST_MOVE;
-        }
-    }
-
     score = read_hash_table(depth, alpha, beta);
     if (score != NOVALUE) {
         hash_node_count++;
@@ -262,6 +252,7 @@ static int nega_scout(int depth, int alpha, int beta)
 
     if (depth <= 0) {
         score = quiescence_search(alpha, beta);
+        /* score = evaluate(); */
         eval_node_count++;
         save_hash_table(score, depth, HASH_EXACT);
         return score;
@@ -269,7 +260,8 @@ static int nega_scout(int depth, int alpha, int beta)
 
     count = move_array_init(move_array[depth]);
     if (count == 0) {
-        return NO_BEST_MOVE;
+        dead_node_count++;
+        return -INFINITE + cur_step;
     }
 
     int best = -1;
@@ -291,6 +283,7 @@ static int nega_scout(int depth, int alpha, int beta)
                 better_move = best_move;
                 best_move = move_array[depth][i];
             }
+            
             best = i;
         }
 

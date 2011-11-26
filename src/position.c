@@ -6,10 +6,35 @@ int side;
 BYTE board[256];
 BYTE piece[48];
 
+BYTE piece_type[48] = {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 6, 6, 6,
+    0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 6, 6, 6
+};
+
+void change_side()
+{
+    side = 1 - side;
+
+    /* hash */
+    zobrist_key ^= zobrist_player;
+    zobrist_key_check ^= zobrist_player_check;
+    /* end */
+}
+
 static void add_piece(BYTE pos, BYTE pc)
 {
     board[pos] = pc;
     piece[pc] = pos;
+
+    /* hash */
+    BYTE pt = piece_type[pc];
+    if (pc >= 32)
+        pt += 7;
+
+    zobrist_key ^= zobrist_table[pt][pos];
+    zobrist_key_check ^= zobrist_table_check[pt][pos];
+    /* end */
 }
 
 static char piece_to_char(BYTE pc)
@@ -82,10 +107,14 @@ static int char_to_type(char ch)
     }
 }
 
-void clear_board()
+static void clear_board()
 {
+    side = 0;
     memset(board, 0, sizeof(board));
     memset(piece, 0, sizeof(piece));
+    
+    zobrist_key = 0;
+    zobrist_key_check = 0;
 }
 
 void arr_to_fen(char *fen_str)
@@ -203,10 +232,8 @@ void fen_to_arr(const char *fen_str)
 
     str ++;
 
-    if (*str == 'b') {
-        side = BLACK;
-    } else {
-        side = RED;
+    if (side != (*str == 'b' ? 1 : 0)) {
+        change_side();
     }
 }
 

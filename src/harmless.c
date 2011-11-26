@@ -12,9 +12,9 @@ int main(int argc, char *argv[])
 	ucci_comm_enum uce;
 	ucci_comm_struct ucs;
 
-    new_hash_table();
-
 	if (boot_line() == UCCI_COMM_UCCI) {
+
+        new_hash_table();
                 
 		printf("id name harmless\n");
 		fflush(stdout);
@@ -65,9 +65,9 @@ int main(int argc, char *argv[])
 				break;
 			}
 		}
+        
+        del_hash_table();
 	}
-
-    del_hash_table();
     
 	printf("bye\n");
 	fflush(stdout);
