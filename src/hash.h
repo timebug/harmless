@@ -1,8 +1,7 @@
 #ifndef HASH_H
 #define HASH_H
 
-#define INT32 unsigned long
-#define INT64 unsigned long long
+#include "base.h"
 
 /* 设置哈希表大小，默认4MB */
 #define HASH_TABLE_SIZE 1024*1024*4
@@ -20,6 +19,7 @@ typedef struct {
     data_type type;             /* 数据类型 */
     int depth;                  /* 取得此值时的层次 */
     int value;                  /* 节点的估值 */
+    move goodmove;              /* 最佳走法 */
 } hash_node;
 
 /* 32位的走棋方键值 */
@@ -38,10 +38,11 @@ extern INT64 zobrist_key_check;
 extern INT32 hash_mask;
 extern hash_node *hash_table;
 
+INT32 rand32();
 void reset_hash_table();
 void new_hash_table();
 void del_hash_table();
-void save_hash_table(int value, int depth, data_type type);
-int read_hash_table(int depth, int alpha, int beta);
+void save_hash_table(int value, int depth, data_type type, move mv);
+int read_hash_table(int depth, int alpha, int beta, move *mv);
 
 #endif

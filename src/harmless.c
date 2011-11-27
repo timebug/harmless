@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "base.h"
 #include "position.h"
@@ -11,10 +12,14 @@ int main(int argc, char *argv[])
 	move mv;
 	ucci_comm_enum uce;
 	ucci_comm_struct ucs;
+    char bookfile[255];
+
+    strcpy(bookfile, "BOOK.DAT");
 
 	if (boot_line() == UCCI_COMM_UCCI) {
 
         new_hash_table();
+        init_openbook(bookfile);
                 
 		printf("id name harmless\n");
 		fflush(stdout);

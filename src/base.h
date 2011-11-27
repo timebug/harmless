@@ -17,11 +17,15 @@
 #define MAX_SEARCH_DEPTH 50
 
 typedef unsigned char BYTE;
+typedef unsigned long INT32;
+typedef unsigned long long INT64;
 
 typedef struct {
     BYTE from;
     BYTE to;
-    BYTE capture;
+    unsigned short capture;
 } move;
+
+extern move NULL_MOVE;
 
 #endif

@@ -14,7 +14,7 @@ INT64 zobrist_key_check;
 INT32 hash_mask;
 hash_node *hash_table;
 
-static INT32 rand32()
+INT32 rand32()
 {
     return rand() ^ ((INT32)rand() << 15) ^ ((INT32)rand() << 30);
 }
@@ -65,7 +65,7 @@ void del_hash_table()
         free(hash_table);
 }
 
-void save_hash_table(int value, int depth, data_type type)
+void save_hash_table(int value, int depth, data_type type, move mv)
 {
     int add = zobrist_key & hash_mask;
     hash_node *pnode = &hash_table[add];
@@ -74,9 +74,10 @@ void save_hash_table(int value, int depth, data_type type)
     pnode->checksum = zobrist_key_check;
     pnode->depth = depth;
     pnode->type = type;
+    pnode->goodmove = mv;
 }
 
-int read_hash_table(int depth, int alpha, int beta)
+int read_hash_table(int depth, int alpha, int beta, move *mv)
 {
     int add = zobrist_key & hash_mask;
     hash_node *pnode = &hash_table[add];
@@ -95,6 +96,8 @@ int read_hash_table(int depth, int alpha, int beta)
         /* 下边界 */
         if (pnode->type == HASH_BETA && pnode->value >= beta)
             return pnode->value;
+
+        (*mv) = pnode->goodmove;
     }
 
     /* 没有命中，返回无效标志 */

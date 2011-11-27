@@ -4,10 +4,24 @@
 
 int history[HISTORY_SIZE];
 
+int cmp_move(move m1, move m2) {
+    if (m1.to == m2.to && m1.from == m2.from) return 1;
+    else return 0;
+}
+
 void save_history(move *mv, int depth)
 {
-    int i = mv->from * 256 + mv->to;
-    history[i] += 2 << depth;
+    int k, i;
+    
+    k = mv->from * 256 + mv->to;
+    history[k] += depth;
+
+    /* 防止历史表溢出 */
+    if (history[k] >= 240) {
+        for (i = 0; i < HISTORY_SIZE; i++) {
+            history[i] -= history[i] / 4;
+        }
+    }
 }
 
 void reset_history()
@@ -56,9 +70,9 @@ static quicksort(move *move_array, int p, int r)
     }
 }
 
-int move_array_init(move *move_array)
+int move_array_init(move *move_array, move hash_move)
 {
-    int n1, n2, count;
+    int n1, n2, count, i, j;
     n1 = gen_cap_move(move_array);
     quicksort(move_array, 0, n1-1);
     
@@ -67,6 +81,21 @@ int move_array_init(move *move_array)
     
     set_non_cap_value(move_array, n1, count);
     quicksort(move_array, n1, count-1);
+
+    /* 置换表走法不为空 */
+    if (hash_move.from != 0 && hash_move.to != 0)
+    {
+        for (i = 0; i < count; i++) {
+            if (cmp_move(move_array[i], hash_move)) {
+                for (j = i; j > 0; j--) {
+                    move_array[j] = move_array[j-1];
+                }
+
+                move_array[0] = hash_move;
+                break;
+            }
+        }
+    }
 
     return count;
 }
