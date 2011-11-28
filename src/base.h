@@ -1,6 +1,8 @@
 #ifndef BASE_H
 #define BASE_H
 
+#include <stdio.h>
+
 #define RED 0
 #define BLACK 1
 
@@ -27,5 +29,9 @@ typedef struct {
 } move;
 
 extern move NULL_MOVE;
+
+#define DEBUG_LOG
+/* 日志文件描述符 */
+extern FILE *logfile;
 
 #endif

@@ -6,6 +6,9 @@
 #include "search.h"
 #include "ucci.h"
 
+/* 日志文件描述符 */
+FILE * logfile;
+
 int main(int argc, char *argv[])
 {
     int i;
@@ -15,6 +18,10 @@ int main(int argc, char *argv[])
     char bookfile[255];
 
     strcpy(bookfile, "BOOK.DAT");
+
+#ifdef DEBUG_LOG    
+    logfile = fopen("harmless.log", "w");
+#endif
 
 	if (boot_line() == UCCI_COMM_UCCI) {
 
@@ -66,16 +73,20 @@ int main(int argc, char *argv[])
 			case UCCI_COMM_GO:
 			case UCCI_COMM_GOPONDER:
                 if(ucs.search.ut_mode == UCCI_TIME_DEPTH)
-                    think_depth(ucs.search.depth_time.depth);
+                    think(ucs.search.depth_time.depth);
 				break;
 			}
 		}
         
         del_hash_table();
 	}
-    
+
 	printf("bye\n");
-	fflush(stdout);
+    fflush(stdout);
+
+#ifdef DEBUG_LOG
+    fclose(logfile);
+#endif
 
     return 0;
 }

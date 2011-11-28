@@ -9,11 +9,11 @@ int cmp_move(move m1, move m2) {
     else return 0;
 }
 
-void save_history(move *mv, int depth)
+void save_history(move mv, int depth)
 {
     int k, i;
     
-    k = mv->from * 256 + mv->to;
+    k = mv.from * 256 + mv.to;
     history[k] += depth;
 
     /* 防止历史表溢出 */

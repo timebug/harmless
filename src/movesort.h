@@ -12,7 +12,7 @@ extern int history[];
 
 int cmp_move(move m1, move m2);
 void reset_history();
-void save_history(move *mv, int depth);
+void save_history(move mv, int depth);
 int move_array_init(move *move_array, move hash_move);
 int cap_move_array_init(move *move_array);
 

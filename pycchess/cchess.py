@@ -29,7 +29,6 @@ from subprocess import *
 pygame.init()
 
 screen = pygame.display.set_mode(size, 0, 32)
-
 chessboard = chessboard()
 
 if len(sys.argv) == 2:

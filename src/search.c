@@ -7,21 +7,26 @@
 
 static move move_array[MAX_SEARCH_DEPTH][128]; /* 所有走法 */
 
+/* 记录历史哈希局面 */
+static INT32 hash_history[MAX_SEARCH_DEPTH];
+
 /* 记录4步历史最佳走法，避免出现长将等循环走法 */
 static move move_history[4];
+
 static move best_move;
 static move better_move;
 static move good_move;
 
 static int max_depth;
 
+/* 统计相关结点 */
 static int eval_node_count;
 static int hash_node_count;
 static int dead_node_count;
 
-move NULL_MOVE;
-
 static time_t starttime;
+
+move NULL_MOVE;
 
 /* 当前搜索步数 */
 int cur_step;
@@ -45,6 +50,7 @@ static void init_search()
     eval_node_count = 0;
     hash_node_count = 0;
     dead_node_count = 0;
+
 }
 
 static void make_move(move *mv)
@@ -130,21 +136,18 @@ static void unmake_move(move *mv)
 }
 
 /* 极小窗口搜索(Minimal Window Search/PVS) */
-/* 极限深度：5层 */
 static int principal_variation_search(int depth, int alpha, int beta);
 
 /* PVS + TT(置换表) + HH(历史启发) */
-/* 极限深度：6层 */
 static int nega_scout(int depth, int alpha, int beta);
 
-/* TODO: 迭代深化 */
-void think_depth(int depth)
+void think(int depth)
 {
-
     long best;
     max_depth = depth;
     best_move = NULL_MOVE;
 
+    int i;
     int count = move_array_init(move_array[MAX_SEARCH_DEPTH - 1], NULL_MOVE);
     if (count != 0) {
         best_move = better_move = good_move =
@@ -156,6 +159,7 @@ void think_depth(int depth)
         return;
     }
 
+    /* 搜索开局库 */
     move book_move = read_openbook();
     if (!cmp_move(book_move, NULL_MOVE)) {
         best = move_to_str(book_move);
@@ -166,14 +170,14 @@ void think_depth(int depth)
         move_history[2] = move_history[3];
         move_history[3] = book_move;
 
-        FILE * fd;
-        fd = fopen("harmless.log", "a");
-        fprintf(fd, ">> bestmove(openbook) = %4s\n", (const char *)&best);
-        fclose(fd);
+#ifdef DEBUG_LOG        
+        fprintf(logfile, ">> bestmove(openbook) = %.4s\n", (const char *)&best);
+        fflush(logfile);
+#endif
         
         return;
     }
-    
+
     init_search();
 
     struct timeval start, end;
@@ -181,21 +185,24 @@ void think_depth(int depth)
     gettimeofday(&start, NULL);
 
     /* 开始迭代深化 */
-    /* starttime = get_tick_count(); */
-    /* move backupmove = NULL_MOVE; */
+    starttime = get_tick_count();
+    move backupmove = NULL_MOVE;
     
-    /* for (max_depth = 1; max_depth <= MAX_SEARCH_DEPTH; max_depth++) { */
-    /*     if (nega_scout(max_depth, -INFINITE, INFINITE) != TIME_OVER) { */
-    /*         backupmove = best_move; */
-    /*     } else { */
-    /*         break; */
-    /*     } */
-    /* } */
+    for (max_depth = 1; max_depth <= MAX_SEARCH_DEPTH; max_depth++) {
 
-    /* best_move = backupmove; */
+        int value = nega_scout(max_depth, -INFINITE, INFINITE);
+        
+        if (value != TIME_OVER) {
+            backupmove = best_move;
+        } else {
+            break;
+        }
+    }
+
+    best_move = backupmove;
     
     /* principal_variation_search(depth, -INFINITE, INFINITE); */
-    nega_scout(max_depth, -INFINITE, INFINITE);
+    /* nega_scout(max_depth, -INFINITE, INFINITE); */
 
     gettimeofday(&end, NULL);
     timeuse = 1000000 * ( end.tv_sec - start.tv_sec ) +
@@ -207,14 +214,31 @@ void think_depth(int depth)
         cmp_move(move_history[2] , best_move)) {
         if (cmp_move(move_history[0] , move_history[2]) &&
             cmp_move(move_history[2] , better_move)) {
+
+            if (cmp_move(move_history[0], move_history[2]) &&
+                cmp_move(move_history[2], good_move)) {
+
+                if (count != 1) {
+                    for (i = 0; i < count; i++) {
+                        if (!cmp_move(move_array[MAX_SEARCH_DEPTH - 1][i], good_move)) {
+                            good_move = move_array[MAX_SEARCH_DEPTH - 1][i];
+                        }
+                    }
+                } else {
+                    printf("nobestmove\n");
+                    fflush(stdout);
+                    return;
+                }
+            }
             
             move_history[0] = move_history[1];
             move_history[1] = move_history[2];
             move_history[2] = move_history[3];
             move_history[3] = good_move;
             best = move_to_str(good_move);
-
+                
             flag = 3;
+
         } else {
             move_history[0] = move_history[1];
             move_history[1] = move_history[2];
@@ -236,12 +260,20 @@ void think_depth(int depth)
 
     printf("bestmove %.4s\n", (const char *)&best);
     fflush(stdout);
+
+#ifdef DEBUG_LOG
+    fprintf(logfile, ">> depth = %-2d bestmove(%d) = %.4s eval = %-8d "
+            "hash = %-8d dead = %-3d time = %dms\n",
+            max_depth-1,
+            flag,
+            (const char *)&best,
+            eval_node_count,
+            hash_node_count,
+            dead_node_count,
+            timeuse);
+    fflush(logfile);
+#endif
     
-    FILE * fd;
-    fd = fopen("harmless.log", "a");
-    fprintf(fd, ">> bestmove(%d) = %.4s eval = %-8d hash = %-8d dead = %-3d time = %dms\n",
-            flag, (const char *)&best, eval_node_count, hash_node_count, dead_node_count, timeuse);
-    fclose(fd);
 }
 
 /* 静态搜索函数 */
@@ -276,12 +308,18 @@ static int quiescence_search(int alpha, int beta)
 static int nega_scout(int depth, int alpha, int beta)
 {
     int score, count;
-    int a, b, t, i;
+    int a, b, t, i, j;
     move hash_move = NULL_MOVE;
 
-    /* if (get_tick_count() - starttime >= LONGEST_SEARCH_TIME) */
-    /*     return TIME_OVER; */
+    /* 用哈希历史局面防止产生循环局面 */
+    hash_history[depth] = zobrist_key;
+    for (j = max_depth; j > depth; j--) {
+        if (hash_history[j] == hash_history[depth]) {
+            return -INFINITE;
+        }
+    }
 
+    /* 读取哈希表 */
     score = read_hash_table(depth, alpha, beta, &hash_move);
     if (score != NOVALUE) {
         hash_node_count++;
@@ -301,6 +339,16 @@ static int nega_scout(int depth, int alpha, int beta)
         dead_node_count++;
         return -INFINITE + cur_step;
     }
+    
+    /* 将上次迭代的最佳走法设置为走法数组的第一位 */
+    if (depth == max_depth && max_depth > 1) {
+        for (i = 1; i < count; i++) {
+            if (cmp_move(move_array[depth][i], best_move)) {
+                move_array[depth][i] = move_array[depth][0];
+                move_array[depth][0] = best_move;
+            }
+        }
+    }
 
     int best = -1;
     a = alpha;
@@ -308,6 +356,12 @@ static int nega_scout(int depth, int alpha, int beta)
     int eval_is_exact = 0;
 
     for (i = 0; i < count; i++) {
+
+        if (depth == max_depth) {
+            if (get_tick_count() - starttime >= LONGEST_SEARCH_TIME)
+                return TIME_OVER;
+        }
+        
         make_move(&move_array[depth][i]);
         t = -nega_scout(depth-1, -b, -a);
         
@@ -341,7 +395,7 @@ static int nega_scout(int depth, int alpha, int beta)
 
         if (a >= beta) {
             save_hash_table(a, depth, HASH_BETA, move_array[depth][i]);
-            save_history(&move_array[depth][i], depth);
+            save_history(move_array[depth][i], depth);
             return a;
         }
 
@@ -349,7 +403,7 @@ static int nega_scout(int depth, int alpha, int beta)
     }
 
     if (best != -1) {
-        save_history(&move_array[depth][best], depth);
+        save_history(move_array[depth][best], depth);
     }
 
     if (eval_is_exact)
