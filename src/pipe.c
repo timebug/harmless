@@ -1,29 +1,87 @@
 #include <stdlib.h>
-#include <signal.h>
-#include <time.h>
-#include <sys/select.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "pipe.h"
 
 static char buffer[LINE_INPUT_MAX_CHAR];
-static int input, output;
 static int read_end;
 static int eof;
 
-inline void parse_dir(char *dir, const char *path)
+#ifdef _WIN32
+
+#include <windows.h>
+
+HANDLE input, output;
+int console;
+int bytes_left;
+
+void open_pipe()
 {
-    char *separator;
-    strcpy(dir, path);
-    separator = strrchr(dir, PATH_SEPARATOR);
-  
-    if (separator == NULL) {
-        dir[0] = '\0';
-    } else {
-        *separator = '\0';
+    DWORD dw_mode;
+    HANDLE stdin_read, stdin_write, stdout_read, stdout_write;
+    eof = 0;
+    input = GetStdHandle(STD_INPUT_HANDLE);
+    output = GetStdHandle(STD_OUTPUT_HANDLE);
+    console = GetConsoleMode(input, &dw_mode);
+    read_end = 0;
+}
+
+void close()
+{
+    CloseHandle(input);
+    CloseHandle(output);
+}
+
+void read_input()
+{
+    DWORD dw_bytes;
+    if (ReadFile(input, buffer + read_end, LINE_INPUT_MAX_CHAR - read_end,
+                 &dw_bytes, NULL)) {
+        read_end += dw_bytes;
+        if (bytes_left > 0) {
+            bytes_left -= dw_bytes;
+        } else {
+            eof = 1;
+        }
     }
 }
+
+int check_input()
+{
+    DWORD dw_events, dw_bytes;
+    if (console) {
+        GetNumberOfConsoleInputEvents(input, &dw_events);
+        return dw_events > 1;
+    } else if (bytes_left > 0) {
+        return 1;
+    } else if (PeekNamedPipe(input, NULL, 0, NULL, &dw_bytes, NULL)) {
+        bytes_left = dw_bytes;
+        return bytes_left > 0;
+    } else {
+        return 1;
+    }
+}
+
+void line_output(const char *line_str)
+{
+    DWORD dw_bytes;
+    int str_len;
+    char write_buffer[LINE_INPUT_MAX_CHAR];
+    str_len = strlen(line_str);
+    memcpy(buffer, line_str, str_len);
+    buffer[str_len] = 'r';
+    buffer[str_len + 1] = '\n';
+    WriteFile(output, buffer, str_len + 2, &dw_bytes, NULL);
+}
+
+#else
+
+#include <signal.h>
+#include <time.h>
+#include <sys/select.h>
+#include <unistd.h>
+
+static int input, output;
 
 void open_pipe()
 {
@@ -85,6 +143,8 @@ void line_output(const char *line_str)
     write_buffer[str_len] = '\n';
     write(output, write_buffer, str_len + 1);
 }
+
+#endif
 
 static int get_buffer(char *line_str)
 {

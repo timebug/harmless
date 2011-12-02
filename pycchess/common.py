@@ -27,7 +27,7 @@ LOCAL, OTHER = 0, 1
 NETWORK, AI = 0, 1
 KING, ADVISOR, BISHOP, KNIGHT, ROOK, CANNON, PAWN, NONE = 0, 1, 2, 3, 4, 5, 6, -1
 
-AI_SEARCH_DEPTH = 6
+AI_SEARCH_DEPTH = 5
 
 image_path = 'image/'
 board_image = 'cchessboard.png'
@@ -124,3 +124,4 @@ def load_sound(name):
     except pygame.error, message:
         raise SystemExit, message
     return sound
+

@@ -8,6 +8,26 @@ char command_line_str[LINE_INPUT_MAX_CHAR];
 
 static long coord_list[256];
 
+#ifdef _WIN32
+
+#include "windows.h"
+
+static void idle()
+{
+    Sleep(1);
+}
+
+#else
+
+#include "unistd.h"
+
+static void idle()
+{
+    usleep(1000);
+}
+
+#endif
+
 static int read_digit(char *line_str, int max_value)
 {
     int value = 0;
@@ -37,7 +57,7 @@ ucci_comm_enum boot_line()
     open_pipe();
 
     while (!line_input(line_str)) {
-        sleep(1);
+        idle(1);
     }
 
     if (strcmp(line_str, "ucci") == 0) {
@@ -54,7 +74,7 @@ ucci_comm_enum idle_line(ucci_comm_struct *ucs_command)
     ucci_comm_enum uce_return_value;
 
     while (!line_input(command_line_str)) {
-        sleep(1);
+        idle(1);
     }
 
     line_str = command_line_str;

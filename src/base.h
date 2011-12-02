@@ -14,13 +14,13 @@
 #define CANNON 5
 #define PAWN 6
 
-#define INFINITE 20000
+#define INFINITE_ 20000
 /* 最大搜索棋局深度 */
 #define MAX_SEARCH_DEPTH 50
 
 typedef unsigned char BYTE;
-typedef unsigned long INT32;
-typedef unsigned long long INT64;
+typedef unsigned long INT32_;
+typedef unsigned long long INT64_;
 
 typedef struct {
     BYTE from;

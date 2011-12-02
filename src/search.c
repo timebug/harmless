@@ -1,14 +1,23 @@
 #include <stdio.h>
 #include <string.h>
+
+#ifdef _WIN32
+
+#include "windows.h"
+
+#else
+
 #include <sys/time.h>
 #include <unistd.h>
+
+#endif
 
 #include "search.h"
 
 static move move_array[MAX_SEARCH_DEPTH][128]; /* 所有走法 */
 
 /* 记录历史哈希局面 */
-static INT32 hash_history[MAX_SEARCH_DEPTH];
+static INT32_ hash_history[MAX_SEARCH_DEPTH];
 
 /* 记录4步历史最佳走法，避免出现长将等循环走法 */
 static move move_history[4];
@@ -31,6 +40,15 @@ move NULL_MOVE;
 /* 当前搜索步数 */
 int cur_step;
 
+#ifdef _WIN32
+
+static unsigned long get_tick_count()
+{
+    return GetTickCount();
+}
+
+#else
+
 static unsigned long get_tick_count()
 {
     struct timeval tv;
@@ -39,6 +57,8 @@ static unsigned long get_tick_count()
  
     return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 }
+
+#endif
 
 static void init_search()
 {
@@ -180,17 +200,13 @@ void think(int depth)
 
     init_search();
 
-    struct timeval start, end;
-    int timeuse;
-    gettimeofday(&start, NULL);
-
     /* 开始迭代深化 */
     starttime = get_tick_count();
     move backupmove = NULL_MOVE;
     
     for (max_depth = 1; max_depth <= MAX_SEARCH_DEPTH; max_depth++) {
 
-        int value = nega_scout(max_depth, -INFINITE, INFINITE);
+        int value = nega_scout(max_depth, -INFINITE_, INFINITE_);
         
         if (value != TIME_OVER) {
             backupmove = best_move;
@@ -201,13 +217,11 @@ void think(int depth)
 
     best_move = backupmove;
     
-    /* principal_variation_search(depth, -INFINITE, INFINITE); */
-    /* nega_scout(max_depth, -INFINITE, INFINITE); */
+    /* principal_variation_search(depth, -INFINITE_, INFINITE_); */
+    /* nega_scout(max_depth, -INFINITE_, INFINITE_); */
 
-    gettimeofday(&end, NULL);
-    timeuse = 1000000 * ( end.tv_sec - start.tv_sec ) +
-        end.tv_usec - start.tv_usec;
-    timeuse /= 1000;
+    int timeuse;
+    timeuse = get_tick_count() - starttime;
 
     int flag = 0;
     if (cmp_move(move_history[0] , move_history[2]) &&
@@ -286,7 +300,7 @@ static int quiescence_search(int alpha, int beta)
     move move_arr[128];
     int count = cap_move_array_init(move_arr);
     if (count == 0)
-        return -INFINITE + cur_step;
+        return -INFINITE_ + cur_step;
     
     int i;
     for (i = 0; i < count; i++) {
@@ -315,7 +329,7 @@ static int nega_scout(int depth, int alpha, int beta)
     hash_history[depth] = zobrist_key;
     for (j = max_depth; j > depth; j--) {
         if (hash_history[j] == hash_history[depth]) {
-            return -INFINITE;
+            return -INFINITE_;
         }
     }
 
@@ -337,7 +351,7 @@ static int nega_scout(int depth, int alpha, int beta)
     count = move_array_init(move_array[depth], hash_move);
     if (count == 0) {
         dead_node_count++;
-        return -INFINITE + cur_step;
+        return -INFINITE_ + cur_step;
     }
     
     /* 将上次迭代的最佳走法设置为走法数组的第一位 */

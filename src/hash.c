@@ -4,25 +4,25 @@
 
 #include "hash.h"
 
-INT32 zobrist_player;
-INT64 zobrist_player_check;
-INT32 zobrist_table[14][256];
-INT64 zobrist_table_check[14][256];
+INT32_ zobrist_player;
+INT64_ zobrist_player_check;
+INT32_ zobrist_table[14][256];
+INT64_ zobrist_table_check[14][256];
 
-INT32 zobrist_key;
-INT64 zobrist_key_check;
-INT32 hash_mask;
+INT32_ zobrist_key;
+INT64_ zobrist_key_check;
+INT32_ hash_mask;
 hash_node *hash_table;
 
-INT32 rand32()
+INT32_ rand32()
 {
-    return rand() ^ ((INT32)rand() << 15) ^ ((INT32)rand() << 30);
+    return rand() ^ ((INT32_)rand() << 15) ^ ((INT32_)rand() << 30);
 }
 
-static INT64 rand64()
+static INT64_ rand64()
 {
-    return rand() ^ ((INT64)rand() << 15) ^ ((INT64)rand() << 30) ^
-        ((INT64)rand() << 45) ^ ((INT64)rand() << 60);    
+    return rand() ^ ((INT64_)rand() << 15) ^ ((INT64_)rand() << 30) ^
+        ((INT64_)rand() << 45) ^ ((INT64_)rand() << 60);    
 }
 
 static void init_zobrist()
