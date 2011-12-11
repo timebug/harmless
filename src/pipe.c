@@ -85,9 +85,6 @@ static int input, output;
 
 void open_pipe()
 {
-    int stdin_pipe[2], stdout_pipe[2];
-    
-    char dir[PATH_MAX_CHAR];
     eof = 0;
     input = STDIN_FILENO;
     output = STDOUT_FILENO;

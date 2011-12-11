@@ -4,6 +4,7 @@
 #include "base.h"
 #include "hash.h"
 #include "position.h"
+#include "movesort.h"
 
 #define MAX_BOOK_POS 30000
 #define MAX_BOOK_MOVE 128

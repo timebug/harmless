@@ -61,7 +61,7 @@ static int partition(move *move_array, int p, int r)
     return i+1;
 }
 
-static quicksort(move *move_array, int p, int r)
+static void quicksort(move *move_array, int p, int r)
 {
     if (p < r) {
         int q = partition(move_array, p, r);

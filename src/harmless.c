@@ -11,8 +11,6 @@ FILE * logfile;
 
 int main(int argc, char *argv[])
 {
-    int i;
-	move mv;
 	ucci_comm_enum uce;
 	ucci_comm_struct ucs;
     char bookfile[255];
@@ -75,6 +73,8 @@ int main(int argc, char *argv[])
                 if(ucs.search.ut_mode == UCCI_TIME_DEPTH)
                     think(ucs.search.depth_time.depth);
 				break;
+            default:
+                break;
 			}
 		}
         

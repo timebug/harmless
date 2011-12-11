@@ -156,7 +156,7 @@ static void unmake_move(move *mv)
 }
 
 /* 极小窗口搜索(Minimal Window Search/PVS) */
-static int principal_variation_search(int depth, int alpha, int beta);
+/* static int principal_variation_search(int depth, int alpha, int beta); */
 
 /* PVS + TT(置换表) + HH(历史启发) */
 static int nega_scout(int depth, int alpha, int beta);
@@ -428,6 +428,7 @@ static int nega_scout(int depth, int alpha, int beta)
     return a;
 }
 
+#if 0
 static int principal_variation_search(int depth, int alpha, int beta)
 {
     int score, count, best;
@@ -484,3 +485,4 @@ static int principal_variation_search(int depth, int alpha, int beta)
 
     return best;
 }
+#endif
