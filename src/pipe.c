@@ -18,7 +18,6 @@ int bytes_left;
 void open_pipe()
 {
     DWORD dw_mode;
-    HANDLE stdin_read, stdin_write, stdout_read, stdout_write;
     eof = 0;
     input = GetStdHandle(STD_INPUT_HANDLE);
     output = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -66,7 +65,6 @@ void line_output(const char *line_str)
 {
     DWORD dw_bytes;
     int str_len;
-    char write_buffer[LINE_INPUT_MAX_CHAR];
     str_len = strlen(line_str);
     memcpy(buffer, line_str, str_len);
     buffer[str_len] = 'r';
@@ -138,7 +136,9 @@ void line_output(const char *line_str)
     memcpy(write_buffer, line_str, str_len);
     
     write_buffer[str_len] = '\n';
-    write(output, write_buffer, str_len + 1);
+    if (write(output, write_buffer, str_len + 1) != str_len + 1) {
+        /* err_sys("write error"); */
+    }
 }
 
 #endif

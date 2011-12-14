@@ -23,8 +23,18 @@ from chessnet import *
 
 import pygame
 from pygame.locals import *
-from sys import *
-from subprocess import *
+
+import sys
+from subprocess import PIPE, Popen
+from threading import Thread
+from Queue import Queue, Empty
+
+ON_POSIX = 'posix' in sys.builtin_module_names
+
+def enqueue_output(out, queue):
+    for line in iter(out.readline, ''):
+        queue.put(line)
+    out.close()
 
 pygame.init()
 
@@ -42,8 +52,12 @@ if len(sys.argv) == 2:
         print 'game over'
         exit()
 elif len(sys.argv) == 1:
-    p = Popen("../src/harmless", stdin = PIPE, stdout = PIPE)
+    p = Popen("../src/harmless", stdin=PIPE, stdout=PIPE, close_fds=ON_POSIX)
     (chessboard.fin, chessboard.fout) = (p.stdin, p.stdout)
+    q = Queue()
+    t = Thread(target=enqueue_output, args=(chessboard.fout, q))
+    t.daemon = True
+    t.start()
     
     chessboard.fin.write("ucci\n")
     chessboard.fin.flush()
@@ -51,10 +65,14 @@ elif len(sys.argv) == 1:
     # chessboard.fin.flush()
 
     while True:
-        output = chessboard.fout.readline()
-        sys.stdout.write(output)
-        if 'ucciok' in output:
-            break
+        try:
+            output = q.get_nowait()
+        except Empty:
+            continue
+        else:
+            sys.stdout.write(output)
+            if 'ucciok' in output:
+                break
         
     chessboard.mode = AI
     pygame.display.set_caption("harmless")
@@ -66,9 +84,11 @@ else:
 chessboard.fen_parse(fen_str)
 
 init = True
+waiting = False
+moved = False
 
 while True:
-    moved = False
+
     for event in pygame.event.get():
         if event.type == QUIT:
             if chessboard.mode is NETWORK:
@@ -77,6 +97,8 @@ while True:
             if chessboard.mode is AI:
                 chessboard.fin.write("quit\n");
                 chessboard.fin.flush();
+                p.terminate()
+                
             exit()
         if event.type == MOUSEBUTTONDOWN:
             x, y = pygame.mouse.get_pos()
@@ -86,7 +108,7 @@ while True:
                 break
             x = (x - BORDER) / SPACE
             y = (y - BORDER) / SPACE
-            if not chessboard.over:
+            if not waiting and not chessboard.over:
                 moved = chessboard.move_chessman(x, y)
                 if chessboard.mode == NETWORK and moved:
                     chessboard.over = chessboard.game_over(1-chessboard.side)
@@ -105,8 +127,14 @@ while True:
                 move_arr = str_to_move(move_str)
                 
         if chessboard.mode is AI:
-            output = chessboard.fout.readline()
-            sys.stdout.write(output)
+            try:
+                output = q.get_nowait()
+            except Empty:
+                waiting = True
+                continue
+            else:
+                waiting = False
+                sys.stdout.write(output)
             
             if output[0:10] == 'nobestmove': 
                 chessboard.over = True

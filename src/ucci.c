@@ -71,7 +71,7 @@ ucci_comm_enum idle_line(ucci_comm_struct *ucs_command)
 {
     int i;
     char *line_str;
-    ucci_comm_enum uce_return_value;
+    ucci_comm_enum uce_return_value = UCCI_COMM_NONE;
 
     while (!line_input(command_line_str)) {
         idle(1);
