@@ -41,14 +41,13 @@ chessman_image = ['king.png',
                   'rook.png',
                   'cannon.png',
                   'pawn.png']
+
+check_sound = "sounds/CHECK.WAV"
 move_sound = 'sounds/MOVE.WAV'
+capture_sound = 'sounds/CAPTURE.WAV'
+loss_sound = 'sounds/LOSS.WAV'
 
 fen_str = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1'
-# AI在还有棋子走的情况下提前认输 :fixed
-# fen_str = '2ba1a3/1R7/2Ck5/p7p/2p1N4/4P4/P1P3P1P/4B4/7c1/3AKAB2 b - - 0 1'
-# AI长将问题 :fixed
-# fen_str = '5R3/5c3/5k3/4R3p/p8/9/P1P5P/B4r3/4K4/3A2B2 b - - 0 1'
-# fen_str = '2ba1k3/4a4/8b/p7p/9/2r5n/9/9/3K5/5r3 b - - 0 1'
 
 king_dir = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 advisor_dir = [(-1, -1), (1, -1), (-1, 1), (1, 1)]
@@ -124,4 +123,3 @@ def load_sound(name):
     except pygame.error, message:
         raise SystemExit, message
     return sound
-

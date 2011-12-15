@@ -62,6 +62,8 @@ int main(int argc, char *argv[])
 				case UCCI_OPTION_DEBUG:
 					break;
 				case UCCI_OPTION_NEWGAME:
+                    new_hash_table();
+                    init_openbook(bookfile);
 					break;
 				default:
 					break;

@@ -61,8 +61,6 @@ elif len(sys.argv) == 1:
     
     chessboard.fin.write("ucci\n")
     chessboard.fin.flush()
-    # chessboard.fin.write("setoption newgame\n")
-    # chessboard.fin.flush()
 
     while True:
         try:
@@ -82,24 +80,49 @@ else:
     exit()
 
 chessboard.fen_parse(fen_str)
-
 init = True
 waiting = False
 moved = False
 
-while True:
+def newGame():
+    global init
+    global waiting
+    global moved
 
+    chessboard.fin.write("setoption newgame\n")
+    chessboard.fin.flush()
+
+    chessboard.fen_parse(fen_str)
+    init = True
+    waiting = False
+    moved = False
+
+def quitGame():
+    if chessboard.mode is NETWORK:
+        net = chessnet()
+        net.send_move('over')
+    if chessboard.mode is AI:
+        chessboard.fin.write("quit\n");
+        chessboard.fin.flush()
+        p.terminate()
+        
+    print 'game over'        
+    exit()
+
+def runGame():
+    global init
+    global waiting
+    global moved
+    
     for event in pygame.event.get():
         if event.type == QUIT:
-            if chessboard.mode is NETWORK:
-                net = chessnet()
-                net.send_move('over')
-            if chessboard.mode is AI:
-                chessboard.fin.write("quit\n");
-                chessboard.fin.flush();
-                p.terminate()
+            quitGame()
+        if event.type == KEYDOWN:
+            if event.key == K_SPACE:
+                if not waiting:
+                    newGame()
+                    return
                 
-            exit()
         if event.type == MOUSEBUTTONDOWN:
             x, y = pygame.mouse.get_pos()
             if x < BORDER or x > (WIDTH - BORDER):
@@ -131,7 +154,7 @@ while True:
                 output = q.get_nowait()
             except Empty:
                 waiting = True
-                continue
+                return
             else:
                 waiting = False
                 sys.stdout.write(output)
@@ -139,12 +162,12 @@ while True:
             if output[0:10] == 'nobestmove': 
                 chessboard.over = True
                 chessboard.over_side = 1 - chessboard.side
-                continue
+                return
             elif output[0:8] == 'bestmove':
                 move_str = output[9:13]
                 move_arr = str_to_move(move_str)
             else:
-                continue
+                return
 
         chessboard.side = 1 - chessboard.side
         chessboard.move_from = OTHER
@@ -176,3 +199,9 @@ while True:
             init = False
         else:
             chessboard.over = True
+
+try:
+    while True:
+        runGame()
+except KeyboardInterrupt:
+    quitGame()

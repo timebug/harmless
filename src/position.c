@@ -171,7 +171,6 @@ void fen_to_arr(const char *fen_str)
     int b_pc[7] = {32, 33, 35, 37, 39, 41, 43};
     const char *str;
         
-    clear_board();
     str = fen_str;
         
     if (*str == '\0') {
@@ -252,12 +251,21 @@ inline move str_to_move(long str)
 
 inline long move_to_str(move mv)
 {
-    char str[4];
-    
-    str[0] = (mv.from % 16) - 3 + 'a';
-    str[1] = '9' - (mv.from / 16) + 3;
-    str[2] = (mv.to % 16) - 3 + 'a';
-    str[3] = '9' - (mv.to / 16) + 3;
-    
-    return *(long *) str;
+    /* union u_str fix '-O2(3)' warning:
+     * dereferencing type-punned pointer
+     * will break strict-aliasing rules */
+    union u_str {
+        char str[4];
+        long p;
+    };
+
+    union u_str str_u;
+
+    str_u.str[0] = (mv.from % 16) - 3 + 'a';
+    str_u.str[1] = '9' - (mv.from / 16) + 3;
+    str_u.str[2] = (mv.to % 16) - 3 + 'a';
+    str_u.str[3] = '9' - (mv.to / 16) + 3;
+
+    /* return *(long *)str */
+    return *(&str_u.p);
 }

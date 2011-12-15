@@ -25,23 +25,33 @@ import sys
 import pygame
 
 class chessboard:
-    def __init__(self):
-        self.mode = NETWORK
-        self.side = RED
+    def clearboard(self):
         self.board = {}
         self.selected = ()
         self.done = []
         self.piece = [0]*48
         self.over = False
         self.over_side = RED
+        
+    def __init__(self):
+        self.clearboard()
+        
+        self.mode = NETWORK
+        self.side = RED
         self.move_from = LOCAL
+        
         self.fin = sys.stdin;
         self.fout = sys.stdout;
+        
         self.surface = pygame.image.load(image_path + board_image).convert()
         self.select_surface = pygame.image.load(image_path + select_image).convert_alpha()
         self.done_surface = pygame.image.load(image_path + done_image).convert_alpha()
         self.over_surface = pygame.image.load(image_path + over_image).convert_alpha()
+        
+        self.check_sound = load_sound(check_sound)
         self.move_sound = load_sound(move_sound)
+        self.capture_sound = load_sound(capture_sound)
+        self.loss_sound = load_sound(loss_sound)
 
     def add_chessman(self, kind, color, x, y, pc):
         chessman_ = chessman(kind, color, x, y, pc)
@@ -89,6 +99,8 @@ class chessboard:
         return fen_str
 
     def fen_parse(self, fen_str):
+        self.clearboard()
+        
         pc_code = [[16, 17, 19, 21, 23, 25, 27], [32, 33, 35, 37, 39, 41, 43]]
         
         if fen_str == '':
@@ -366,8 +378,20 @@ class chessboard:
                         self.make_move(self.selected, (x, y), chessman_)
                         
                         if not self.check(self.side):
-                            self.move_sound.play()
+
+                            under_attack = self.check(1 - self.side)
                             
+                            if under_attack is True:
+                                self.check_sound.play()
+                            else:
+                                if chessman_ == None:
+                                    self.move_sound.play()
+                                else:
+                                    if self.move_from == LOCAL:
+                                        self.capture_sound.play()
+                                    else:
+                                        self.loss_sound.play()
+
                             self.done = [self.selected, (x, y)]
                             
                             if self.move_from == LOCAL:
