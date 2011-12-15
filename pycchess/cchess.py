@@ -22,6 +22,7 @@ from chessboard import *
 from chessnet import *
 
 import pygame
+import pygame._view
 from pygame.locals import *
 
 import sys
@@ -50,7 +51,7 @@ if len(sys.argv) == 2:
         chessboard.side = BLACK
     else:
         print 'game over'
-        exit()
+        sys.exit()
 elif len(sys.argv) == 1:
     p = Popen("../src/harmless", stdin=PIPE, stdout=PIPE, close_fds=ON_POSIX)
     (chessboard.fin, chessboard.fout) = (p.stdin, p.stdout)
@@ -77,7 +78,7 @@ elif len(sys.argv) == 1:
     chessboard.side = RED
 else:
     print 'game over'
-    exit()
+    sys.exit()
 
 chessboard.fen_parse(fen_str)
 init = True
@@ -107,7 +108,7 @@ def quitGame():
         p.terminate()
         
     print 'game over'        
-    exit()
+    sys.exit()
 
 def runGame():
     global init
