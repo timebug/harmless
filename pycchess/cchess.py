@@ -50,7 +50,7 @@ if len(sys.argv) == 2:
         pygame.display.set_caption("black")
         chessboard.side = BLACK
     else:
-        print 'game over'
+        print '>> quit game'
         sys.exit()
 elif len(sys.argv) == 1:
     p = Popen("../src/harmless", stdin=PIPE, stdout=PIPE, close_fds=ON_POSIX)
@@ -77,7 +77,7 @@ elif len(sys.argv) == 1:
     pygame.display.set_caption("harmless")
     chessboard.side = RED
 else:
-    print 'game over'
+    print '>> quit game'
     sys.exit()
 
 chessboard.fen_parse(fen_str)
@@ -92,6 +92,7 @@ def newGame():
 
     chessboard.fin.write("setoption newgame\n")
     chessboard.fin.flush()
+    print '>> new game'
 
     chessboard.fen_parse(fen_str)
     init = True
@@ -107,7 +108,7 @@ def quitGame():
         chessboard.fin.flush()
         p.terminate()
         
-    print 'game over'        
+    print '>> quit game'
     sys.exit()
 
 def runGame():
@@ -163,6 +164,13 @@ def runGame():
             if output[0:10] == 'nobestmove': 
                 chessboard.over = True
                 chessboard.over_side = 1 - chessboard.side
+
+                if chessboard.over_side == RED:
+                    win_side = 'BLACK'
+                else:
+                    win_side = 'RED'
+                print '>>', win_side, 'win'
+                
                 return
             elif output[0:8] == 'bestmove':
                 move_str = output[9:13]
@@ -181,6 +189,12 @@ def runGame():
         chessboard.over = chessboard.game_over(chessboard.side)
         if chessboard.over:
             chessboard.over_side = chessboard.side
+            
+            if chessboard.over_side == RED:
+                win_side = 'BLACK'
+            else:
+                win_side = 'RED'
+            print '>>', win_side, 'win'
             
         moved = False
 

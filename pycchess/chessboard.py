@@ -51,7 +51,6 @@ class chessboard:
         self.check_sound = load_sound(check_sound)
         self.move_sound = load_sound(move_sound)
         self.capture_sound = load_sound(capture_sound)
-        self.loss_sound = load_sound(loss_sound)
 
     def add_chessman(self, kind, color, x, y, pc):
         chessman_ = chessman(kind, color, x, y, pc)
@@ -387,10 +386,7 @@ class chessboard:
                                 if chessman_ == None:
                                     self.move_sound.play()
                                 else:
-                                    if self.move_from == LOCAL:
-                                        self.capture_sound.play()
-                                    else:
-                                        self.loss_sound.play()
+                                    self.capture_sound.play()
 
                             self.done = [self.selected, (x, y)]
                             
@@ -405,7 +401,7 @@ class chessboard:
                                 if self.mode == AI:
                                     fen_str = self.get_fen()
                                     self.fin.write('position fen ' + fen_str + '\n')
-                                    print "position fen %s" % fen_str
+                                    # print "position fen %s" % fen_str
                                     self.fin.flush()
                                     self.fin.write('go depth ' + str(AI_SEARCH_DEPTH)  + '\n')
                                     self.fin.flush()
