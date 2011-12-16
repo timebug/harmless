@@ -45,6 +45,7 @@ chessman_image = ['king.png',
 check_sound = "sounds/CHECK.WAV"
 move_sound = 'sounds/MOVE.WAV'
 capture_sound = 'sounds/CAPTURE.WAV'
+loss_sound = 'sounds/LOSS.WAV'
 
 fen_str = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1'
 

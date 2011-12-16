@@ -51,6 +51,7 @@ class chessboard:
         self.check_sound = load_sound(check_sound)
         self.move_sound = load_sound(move_sound)
         self.capture_sound = load_sound(capture_sound)
+        self.loss_sound = load_sound(loss_sound)
 
     def add_chessman(self, kind, color, x, y, pc):
         chessman_ = chessman(kind, color, x, y, pc)
@@ -386,7 +387,10 @@ class chessboard:
                                 if chessman_ == None:
                                     self.move_sound.play()
                                 else:
-                                    self.capture_sound.play()
+                                    if self.move_from == LOCAL:
+                                        self.capture_sound.play()
+                                    else:
+                                        self.loss_sound.play()
 
                             self.done = [self.selected, (x, y)]
                             
