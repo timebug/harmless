@@ -121,7 +121,7 @@ def runGame():
             quitGame()
         if event.type == KEYDOWN:
             if event.key == K_SPACE:
-                if not waiting:
+                if not waiting or chessboard.over:
                     newGame()
                     return
                 
