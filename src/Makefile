@@ -1,7 +1,7 @@
 BIN = harmless
 
 CC = gcc
-CFLAGS = -O3 -Wall
+CFLAGS = -O3 -Wall -pg
 
 ${BIN} : pipe.o ucci.o position.o genmoves.o movesort.o \
 	evaluate.o search.o hash.o openbook.o harmless.o

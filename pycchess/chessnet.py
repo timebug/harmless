@@ -19,18 +19,17 @@
 
 import socket, sys, traceback
 
-host_ = 'localhost'
-
 class chessnet():
     def __init__(self):
         self.host = ''
-        self.port = 62222
+        self.NET_HOST = ''
+        self.NET_PORT = 62222
 
     def send_move(self, move):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
         try:
-            s.connect((host_, self.port))
+            s.connect((self.NET_HOST, self.NET_PORT))
         except socket.error, e:
             print "Couldn't find your port: %s" % e
             sys.exit(1)
@@ -46,12 +45,13 @@ class chessnet():
     def get_move(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.setsockopt(socket.SOCK_STREAM, socket.SO_REUSEADDR, 1)
-        s.bind((self.host, self.port))
+        s.bind((self.host, self.NET_PORT))
         s.listen(1)
 
         while 1:
             try:
                 clientsock, clientaddr = s.accept()
+                # print clientaddr
             except KeyboardInterrupt:
                 raise
             except:
@@ -65,9 +65,6 @@ class chessnet():
             except:
                 traceback.print_exc()
     
-            if not move or move == 'over':
-                break
-
             try:
                 clientsock.close()
             except KeyboardInterrupt:

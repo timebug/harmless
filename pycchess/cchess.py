@@ -22,7 +22,7 @@ from chessboard import *
 from chessnet import *
 
 import pygame
-import pygame._view
+#import pygame._view
 from pygame.locals import *
 
 import sys
@@ -42,18 +42,23 @@ pygame.init()
 screen = pygame.display.set_mode(size, 0, 32)
 chessboard = chessboard()
 
-if len(sys.argv) == 2:
-    if sys.argv[1] == 'r':
+if len(sys.argv) == 2 and sys.argv[1][:2] == '-n':
+    chessboard.net = chessnet()
+
+    if sys.argv[1][2:] == 'r':
         pygame.display.set_caption("red")
         chessboard.side = RED
-    elif sys.argv[1] == 'b':
+    elif sys.argv[1][2:] == 'b':
         pygame.display.set_caption("black")
         chessboard.side = BLACK
     else:
         print '>> quit game'
         sys.exit()
+
+    chessboard.net.NET_HOST = sys.argv[2]
+    
 elif len(sys.argv) == 1:
-    p = Popen("../src/harmless", stdin=PIPE, stdout=PIPE, close_fds=ON_POSIX)
+    p = Popen("./harmless", stdin=PIPE, stdout=PIPE, close_fds=ON_POSIX)
     (chessboard.fin, chessboard.fout) = (p.stdin, p.stdout)
     q = Queue()
     t = Thread(target=enqueue_output, args=(chessboard.fout, q))
@@ -102,9 +107,9 @@ def newGame():
 def quitGame():
     if chessboard.mode is NETWORK:
         net = chessnet()
-        net.send_move('over')
+        net.send_move('quit')
     if chessboard.mode is AI:
-        chessboard.fin.write("quit\n");
+        chessboard.fin.write("quit\n")
         chessboard.fin.flush()
         p.terminate()
         
@@ -121,9 +126,10 @@ def runGame():
             quitGame()
         if event.type == KEYDOWN:
             if event.key == K_SPACE:
-                if not waiting or chessboard.over:
-                    newGame()
-                    return
+                if chessboard.mode == AI:
+                    if not waiting or chessboard.over:
+                        newGame()
+                        return
                 
         if event.type == MOUSEBUTTONDOWN:
             x, y = pygame.mouse.get_pos()
@@ -145,11 +151,12 @@ def runGame():
     
     if moved:
         if chessboard.mode is NETWORK:
-            net = chessnet()
-            move_str = net.get_move()
-            if move_str is not None:
+            move_str = chessboard.net.get_move()
+            if move_str is not 'quit':
                 # print 'recv move: %s' % move_str
                 move_arr = str_to_move(move_str)
+            else:
+                quitGame()
                 
         if chessboard.mode is AI:
             try:
@@ -198,9 +205,8 @@ def runGame():
             
         moved = False
 
-    if len(sys.argv) == 2 and sys.argv[1] == 'b' and init:
-        net = chessnet()
-        move_str = net.get_move()
+    if len(sys.argv) == 2 and sys.argv[1][:2] == '-n' and init:
+        move_str = chessboard.net.get_move()
         if move_str is not None:
             # print 'recv move: %s' % move_str
             move_arr = str_to_move(move_str)

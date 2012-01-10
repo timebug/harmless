@@ -39,6 +39,7 @@ class chessboard:
         self.mode = NETWORK
         self.side = RED
         self.move_from = LOCAL
+        self.net = None
         
         self.fin = sys.stdin;
         self.fout = sys.stdout;
@@ -394,9 +395,11 @@ class chessboard:
                                 if self.mode == NETWORK:
                                     move_str_ = move_to_str(self.selected[0],self.selected[1],x,y)
                                     # print 'send move: %s' % move_str_
-                                    net = chessnet()
                                     move_str = move_to_str(8-self.selected[0],9-self.selected[1],8-x,9-y)
-                                    net.send_move(move_str)
+                                    if self.net is not None:
+                                        self.net.send_move(move_str)
+                                    else:
+                                        print 'self.net is None'
                                     
                                 if self.mode == AI:
                                     fen_str = self.get_fen()
