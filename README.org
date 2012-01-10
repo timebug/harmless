@@ -1,29 +1,29 @@
 * harmless
-  just another chinese chess engine
+  a chinese chess engine
 
-** Install
-*** GNU/Linux
-    + Require
-      - python-2.7.x :: python.org
-      - pygame-py2.7 :: pygame.org      
+** INSTALL
+*** for GNU/Linux
+    + require
+      - =python-2.7.x=: python.org
+      - =pygame-py2.7=: pygame.org      
       
-    + Make it
-      #+BEGIN_EXAMPLE
-      $ git clone git://github.com/timebug/harmless.git harmless
-      $ cd harmless/src
-      $ make
-      $ cd ../pycchess
-      $ python cchess.py
-      #+END_EXAMPLE
+    + make it
+#+BEGIN_EXAMPLE
+  $ git clone git://github.com/timebug/harmless.git harmless
+  $ cd harmless/src
+  $ make
+  $ cd ../pycchess
+  $ python cchess.py
+#+END_EXAMPLE
       
-      /enjoy yourself./
+    + enjoy yourself
 
-*** Windows
+*** for Windows
     1. [[https://github.com/timebug/harmless/downloads]]
     2. download =pycchess-win32-*.zip= then unzip it
     3. run =cchess.exe=
 
-** Keyboard shortcuts
-   =space= : new game
+** KEYBOARD SHORTCUTS
+   =space=: new game
      
 
