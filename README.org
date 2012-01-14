@@ -1,8 +1,6 @@
 * harmless
   a chinese chess engine
 
-  [[file:screenshot.png]]
-
 ** INSTALL
 *** for GNU/Linux
     + require
