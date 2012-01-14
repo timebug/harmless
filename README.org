@@ -7,11 +7,12 @@
       - =python-2.7.x=: python.org
       - =pygame-py2.7=: pygame.org      
       
-    + make it
+    + make and run
 #+BEGIN_EXAMPLE
   $ git clone git://github.com/timebug/harmless.git harmless
   $ cd harmless/src
   $ make
+  $ cp harmless ../pycchess/
   $ cd ../pycchess
   $ python cchess.py
 #+END_EXAMPLE
