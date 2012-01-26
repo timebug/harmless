@@ -12,8 +12,7 @@
   $ git clone git://github.com/timebug/harmless.git harmless
   $ cd harmless/src
   $ make
-  $ cp harmless ../pycchess/
-  $ cd ../pycchess
+  $ cp harmless ../pycchess/ && cd $_
   $ python cchess.py
 #+END_EXAMPLE
       
