@@ -4,7 +4,7 @@ A chinese chess engine
 
 ## INSTALL
 
-### GNU/Linux or Mac OS X User
+### GNU/Linux and Mac OS X User
 
 > require
 
