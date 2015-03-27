@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 
     strcpy(bookfile, "BOOK.DAT");
 
-#ifdef DEBUG_LOG    
+#ifdef DEBUG_LOG
     logfile = fopen("harmless.log", "w");
 #endif
 
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
         new_hash_table();
         init_openbook(bookfile);
-                
+
 		printf("id name harmless\n");
 		fflush(stdout);
         printf("id copyright 2011\n");
@@ -36,10 +36,10 @@ int main(int argc, char *argv[])
 		fflush(stdout);
 
 		uce = UCCI_COMM_NONE;
-                
+
 		while (uce != UCCI_COMM_QUIT) {
 			uce = idle_line(&ucs);
-                        
+
 			switch (uce) {
 			case UCCI_COMM_ISREADY:
 				printf("readyok\n");
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 				default:
 					break;
 				}
-                                
+
 				break;
 			case UCCI_COMM_GO:
 			case UCCI_COMM_GOPONDER:
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
                 break;
 			}
 		}
-        
+
         del_hash_table();
 	}
 

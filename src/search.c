@@ -54,7 +54,7 @@ static unsigned long get_tick_count()
     struct timeval tv;
     if (gettimeofday(&tv, NULL) != 0)
         return 0;
- 
+
     return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 }
 
@@ -89,7 +89,7 @@ static void make_move(move *mv)
         pt = piece_type[pc2];
         if (pc2 >= 32)
             pt += 7;
-        
+
         zobrist_key ^= zobrist_table[pt][mv->to];
         zobrist_key_check ^= zobrist_table_check[pt][mv->to];
         /* end */
@@ -172,7 +172,7 @@ void think(int depth)
     if (count != 0) {
         best_move = better_move = good_move =
             move_array[MAX_SEARCH_DEPTH - 1][0];
-        
+
     } else {
         printf("nobestmove\n");
         fflush(stdout);
@@ -182,7 +182,7 @@ void think(int depth)
     /* 搜索开局库 */
     move book_move = read_openbook();
     if (!cmp_move(book_move, NULL_MOVE)) {
-        best = move_to_str(book_move);
+        best = move_to_str(&book_move);
         printf("bestmove %.4s\n", (const char *)&best);
         fflush(stdout);
         move_history[0] = move_history[1];
@@ -190,11 +190,11 @@ void think(int depth)
         move_history[2] = move_history[3];
         move_history[3] = book_move;
 
-#ifdef DEBUG_LOG        
+#ifdef DEBUG_LOG
         fprintf(logfile, ">> bestmove(openbook) = %.4s\n", (const char *)&best);
         fflush(logfile);
 #endif
-        
+
         return;
     }
 
@@ -203,11 +203,11 @@ void think(int depth)
     /* 开始迭代深化 */
     starttime = get_tick_count();
     move backupmove = NULL_MOVE;
-    
+
     for (max_depth = 1; max_depth <= MAX_SEARCH_DEPTH; max_depth++) {
 
         int value = nega_scout(max_depth, -INFINITE_, INFINITE_);
-        
+
         if (value != TIME_OVER) {
             backupmove = best_move;
         } else {
@@ -216,7 +216,7 @@ void think(int depth)
     }
 
     best_move = backupmove;
-    
+
     /* principal_variation_search(depth, -INFINITE_, INFINITE_); */
     /* nega_scout(max_depth, -INFINITE_, INFINITE_); */
 
@@ -244,13 +244,13 @@ void think(int depth)
                     return;
                 }
             }
-            
+
             move_history[0] = move_history[1];
             move_history[1] = move_history[2];
             move_history[2] = move_history[3];
             move_history[3] = good_move;
-            best = move_to_str(good_move);
-                
+            best = move_to_str(&good_move);
+
             flag = 3;
 
         } else {
@@ -258,7 +258,7 @@ void think(int depth)
             move_history[1] = move_history[2];
             move_history[2] = move_history[3];
             move_history[3] = better_move;
-            best = move_to_str(better_move);
+            best = move_to_str(&better_move);
 
             flag = 2;
         }
@@ -267,7 +267,7 @@ void think(int depth)
         move_history[1] = move_history[2];
         move_history[2] = move_history[3];
         move_history[3] = best_move;
-        best = move_to_str(best_move);
+        best = move_to_str(&best_move);
 
         flag = 1;
     }
@@ -287,7 +287,7 @@ void think(int depth)
             timeuse);
     fflush(logfile);
 #endif
-    
+
 }
 
 /* 静态搜索函数 */
@@ -301,7 +301,7 @@ static int quiescence_search(int alpha, int beta)
     int count = cap_move_array_init(move_arr);
     if (count == 0)
         return -INFINITE_ + cur_step;
-    
+
     int i;
     for (i = 0; i < count; i++) {
         make_move(&move_arr[i]);
@@ -353,7 +353,7 @@ static int nega_scout(int depth, int alpha, int beta)
         dead_node_count++;
         return -INFINITE_ + cur_step;
     }
-    
+
     /* 将上次迭代的最佳走法设置为走法数组的第一位 */
     if (depth == max_depth && max_depth > 1) {
         for (i = 1; i < count; i++) {
@@ -375,21 +375,21 @@ static int nega_scout(int depth, int alpha, int beta)
             if (get_tick_count() - starttime >= LONGEST_SEARCH_TIME)
                 return TIME_OVER;
         }
-        
+
         make_move(&move_array[depth][i]);
         t = -nega_scout(depth-1, -b, -a);
-        
+
         if (t > a && t < beta && i > 0) {
-            
+
             a = -nega_scout(depth-1, -beta, -t);
             eval_is_exact = 1;
-            
+
             if (depth == max_depth) {
                 good_move = better_move;
                 better_move = best_move;
                 best_move = move_array[depth][i];
             }
-            
+
             best = i;
             hash_move = move_array[depth][i];
         }
@@ -399,7 +399,7 @@ static int nega_scout(int depth, int alpha, int beta)
         if (a < t) {
             eval_is_exact = 1;
             a = t;
-            
+
             if (depth == max_depth) {
                 good_move = better_move;
                 better_move = best_move;
@@ -438,7 +438,7 @@ static int principal_variation_search(int depth, int alpha, int beta)
         eval_node_count++;
         return evaluate();
     }
-    
+
     /* 产生下一步所有的可能的走法 */
     count = gen_all_move(move_array[depth]);
 
@@ -452,26 +452,26 @@ static int principal_variation_search(int depth, int alpha, int beta)
         if (depth == max_depth)
             best_move = move_array[depth][0];
     }
-    
+
     int i;
     for (i = 1; i < count; i++) {
         /* 如果不能beta剪枝 */
         if (best < beta) {
             if (best > alpha)
                 alpha = best;
-            
+
             /* 产生子节点 */
             make_move(&move_array[depth][i]);
-            
+
             /* 使用极窄窗口搜索 */
             score = -principal_variation_search(depth-1, -alpha-1, -alpha);
-            
+
             if (score > alpha && score < beta) {
                 /* fail high. 重新搜索 */
                 best = -principal_variation_search(depth-1, -beta, -score);
                 if (depth == max_depth)
                     best_move = move_array[depth][i];
-                
+
             } else if (score > best) {
                 /* 极窄窗口命中 */
                 best = score;

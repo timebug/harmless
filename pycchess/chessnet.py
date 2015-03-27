@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # pycchess - just another chinese chess UI
-# Copyright (C) 2011 timebug.info
+# Copyright (C) 2011 - 2015 timebug
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or 
+# the Free Software Foundation, either version 3 of the License, or
 # any later version.
 
 # This program is distributed in the hope that it will be useful,
@@ -27,19 +27,19 @@ class chessnet():
 
     def send_move(self, move):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
+
         try:
             s.connect((self.NET_HOST, self.NET_PORT))
         except socket.error, e:
             print "Couldn't find your port: %s" % e
             sys.exit(1)
-            
+
         try:
             s.send(move)
         except socket.error, e:
             print "Error sending data (detected by shutdown): %s" % e
             sys.exit(1)
-            
+
         s.close()
 
     def get_move(self):
@@ -64,12 +64,12 @@ class chessnet():
                 sys.exit(1)
             except:
                 traceback.print_exc()
-    
+
             try:
                 clientsock.close()
             except KeyboardInterrupt:
                 raise
             except:
                 traceback.print_exc()
-                
+
             return move

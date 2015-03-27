@@ -264,15 +264,15 @@ static BYTE position_values[2][7][256] =
 int evaluate()
 {
     int i,j,k,r;
-    
+
     BYTE p, next, m;
-    
+
     int side_tag;
     int over_flag;
 
     /* 红(r)、黑(b)棋子价值分量 */
     short r_value, b_value;
-    
+
     /* 红[0]、黑[1]棋子灵活度分量 */
     short flexible[2] = {0, 0};
 
@@ -293,7 +293,7 @@ int evaluate()
 
         /* 将(帅)的灵活性 */
         p = piece[side_tag];
-        
+
         for (k = 0; k < 4; k++) {
             next = p + king_dir[k];
 
@@ -312,7 +312,7 @@ int evaluate()
 
             for (k = 0; k < 4; k++) {
                 next = p + advisor_dir[k];
-                                
+
                 if (legal_position[r][next] & position_mask[ADVISOR]) {
 
                     if (!(board[next] & side_tag))
@@ -332,7 +332,7 @@ int evaluate()
 
                 if (legal_position[r][next] & position_mask[BISHOP]) {
                     m = p + bishop_check[k];
-                                        
+
                     if (!board[m]) {
                         if (!(board[next] & side_tag))
                             flexible[r] += F_BISHOP;

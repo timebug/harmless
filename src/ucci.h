@@ -88,9 +88,9 @@ typedef union {
 	struct {
 		ucci_time_enum ut_mode;
 		union {
-            int depth, time; 
+            int depth, time;
 		} depth_time;
-                
+
 		union {
             int moves_to_go, increment;
 		} time_mode;

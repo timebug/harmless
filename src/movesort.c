@@ -12,7 +12,7 @@ int cmp_move(move m1, move m2) {
 void save_history(move mv, int depth)
 {
     int k, i;
-    
+
     k = mv.from * 256 + mv.to;
     history[k] += depth;
 
@@ -30,7 +30,7 @@ void reset_history()
 }
 
 static void set_non_cap_value(move *move_array, int start, int end) {
-    
+
     int i;
     for (i = start; i < end; ++i) {
         move_array[i].capture = history[move_array[i].from *
@@ -43,7 +43,7 @@ static int partition(move *move_array, int p, int r)
     int i, j;
     move x = move_array[r];
     move tmp;
-    
+
     i = p - 1;
     for (j = p; j < r; j++) {
         if (move_array[j].capture >= x.capture) {
@@ -75,10 +75,10 @@ int move_array_init(move *move_array, move hash_move)
     int n1, n2, count, i, j;
     n1 = gen_cap_move(move_array);
     quicksort(move_array, 0, n1-1);
-    
+
     n2 = gen_non_cap_move(move_array + n1);
     count = n1 + n2;
-    
+
     set_non_cap_value(move_array, n1, count);
     quicksort(move_array, n1, count-1);
 

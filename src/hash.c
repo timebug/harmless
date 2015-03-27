@@ -22,14 +22,14 @@ INT32_ rand32()
 static INT64_ rand64()
 {
     return rand() ^ ((INT64_)rand() << 15) ^ ((INT64_)rand() << 30) ^
-        ((INT64_)rand() << 45) ^ ((INT64_)rand() << 60);    
+        ((INT64_)rand() << 45) ^ ((INT64_)rand() << 60);
 }
 
 static void init_zobrist()
 {
     int i, j;
     srand(time(NULL));
-    
+
     zobrist_player = rand32();
     for (i = 0; i < 14; i++) {
         for (j = 0; j < 256; j++) {
@@ -53,7 +53,7 @@ void reset_hash_table()
 void new_hash_table()
 {
     init_zobrist();
-    
+
     hash_mask = HASH_TABLE_SIZE - 1;
     hash_table = (hash_node *)malloc(HASH_TABLE_SIZE * sizeof(hash_node));
     reset_hash_table();

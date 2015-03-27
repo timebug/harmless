@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # pycchess - just another chinese chess UI
-# Copyright (C) 2011 timebug.info
+# Copyright (C) 2011 - 2015 timebug
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or 
+# the Free Software Foundation, either version 3 of the License, or
 # any later version.
 
 # This program is distributed in the hope that it will be useful,
@@ -32,23 +32,23 @@ class chessboard:
         self.piece = [0]*48
         self.over = False
         self.over_side = RED
-        
+
     def __init__(self):
         self.clearboard()
-        
+
         self.mode = NETWORK
         self.side = RED
         self.move_from = LOCAL
         self.net = None
-        
+
         self.fin = sys.stdin;
         self.fout = sys.stdout;
-        
+
         self.surface = pygame.image.load(image_path + board_image).convert()
         self.select_surface = pygame.image.load(image_path + select_image).convert_alpha()
         self.done_surface = pygame.image.load(image_path + done_image).convert_alpha()
         self.over_surface = pygame.image.load(image_path + over_image).convert_alpha()
-        
+
         self.check_sound = load_sound(check_sound)
         self.move_sound = load_sound(move_sound)
         self.capture_sound = load_sound(capture_sound)
@@ -63,7 +63,7 @@ class chessboard:
             else:
                 if y > 4:
                     chessman_.over_river = True
-                
+
         self.board[(x, y)] = chessman_
         self.piece[pc] = (x, y)
 
@@ -78,18 +78,18 @@ class chessboard:
                         count = 0
                     chessman = self.board[(i, j)]
                     ch = get_char(chessman.kind, chessman.color)
-                    
+
                     if ch is not '':
                         fen_str += ch
                 else:
                     count += 1
-                    
+
             if count is not 0:
                 fen_str += str(count)
                 count = 0
             if j < 9:
                 fen_str += '/'
-                
+
         if self.side is BLACK:
             fen_str += ' w'
         else:
@@ -100,9 +100,9 @@ class chessboard:
 
     def fen_parse(self, fen_str):
         self.clearboard()
-        
+
         pc_code = [[16, 17, 19, 21, 23, 25, 27], [32, 33, 35, 37, 39, 41, 43]]
-        
+
         if fen_str == '':
             return
 
@@ -146,7 +146,7 @@ class chessboard:
         # if fen_str[i+1] == 'b':
         #     self.side = BLACK
         # else:
-        #     self.side = RED            
+        #     self.side = RED
 
     def draw(self, screen):
         screen.fill((0,0,0))
@@ -166,7 +166,7 @@ class chessboard:
 
             if key == self.selected:
                 screen.blit(self.select_surface, (board_x, board_y), (offset, 0, 52, 52))
-                
+
             if key in self.done:
                 screen.blit(self.select_surface, (board_x, board_y), (offset, 0, 52, 52))
                 offset_ = offset
@@ -187,7 +187,7 @@ class chessboard:
 
     def check(self, side):
         side_tag = 32 - side * 16
-        
+
         # king
         w_king = self.piece[16]
         b_king = self.piece[32]
@@ -208,7 +208,7 @@ class chessboard:
 
         # knight
         q = self.piece[48 - side_tag]
-        
+
         for i in range(5, 7):
             p = self.piece[side_tag + i]
             if not p:
@@ -227,7 +227,7 @@ class chessboard:
         # rook
         for i in range(7, 9):
             kill = True
-            
+
             p = self.piece[side_tag + i]
             if not p:
                 continue
@@ -239,7 +239,7 @@ class chessboard:
                     if (p[0], m_y) in self.board.keys():
                         kill = False
                         break
-                    
+
                 if kill:
                     return kill
             elif p[1] == q[1]:
@@ -250,7 +250,7 @@ class chessboard:
                     if (m_x, p[1]) in self.board.keys():
                         kill = False
                         break
-                    
+
                 if kill:
                     return kill
 
@@ -290,11 +290,11 @@ class chessboard:
             p = self.piece[side_tag + i]
             if not p:
                 continue
-            
+
             flag = 0
             if p[1] > 4:
                 flag = 1
-                
+
             for k in range(0, 3):
                 tmp = pawn_dir[flag][k]
                 n = (p[0]+tmp[0], p[1]+tmp[1])
@@ -302,7 +302,7 @@ class chessboard:
                     continue
                 if self.board[p].move_check(n[0], n[1]):
                     return True
-                
+
         return False
 
     def can_move(self, chessman, x, y):
@@ -358,7 +358,7 @@ class chessboard:
             else:
                 if self.selected is ():
                     return False
-        
+
         if self.selected is ():
             if flag:
                 self.selected = (x, y)
@@ -374,13 +374,13 @@ class chessboard:
                         chessman_ = None
                         if (x, y) in self.board.keys():
                             chessman_ = self.board[(x, y)]
-                        
+
                         self.make_move(self.selected, (x, y), chessman_)
-                        
+
                         if not self.check(self.side):
 
                             under_attack = self.check(1 - self.side)
-                            
+
                             if under_attack is True:
                                 self.check_sound.play()
                             else:
@@ -390,7 +390,7 @@ class chessboard:
                                     self.capture_sound.play()
 
                             self.done = [self.selected, (x, y)]
-                            
+
                             if self.move_from == LOCAL:
                                 if self.mode == NETWORK:
                                     move_str_ = move_to_str(self.selected[0],self.selected[1],x,y)
@@ -400,7 +400,7 @@ class chessboard:
                                         self.net.send_move(move_str)
                                     else:
                                         print 'self.net is None'
-                                    
+
                                 if self.mode == AI:
                                     fen_str = self.get_fen()
                                     self.fin.write('position fen ' + fen_str + '\n')
@@ -430,7 +430,7 @@ class chessboard:
 
     def unmake_move(self, p, n, chessman_):
         chessman = self.board[n]
-        
+
         chessman.x, chessman.y = p
         self.board[p] = chessman
 
@@ -446,12 +446,12 @@ class chessboard:
         if n in self.board.keys():
             if self.board[n].color is side:
                 flag = True
-                
+
         chessman = self.board[p]
         ok = self.can_move(chessman, n[0], n[1])
         if not ok:
             flag = True
-            
+
         if not flag:
             move_ = move(p, n)
             moves.append(move_)
@@ -567,7 +567,7 @@ class chessboard:
                 n = (p[0]+tmp[0], p[1]+tmp[1])
                 if self.board[p].move_check(n[0], n[1]):
                     self.save_move(p, n, moves, side)
-                    
+
         return moves
 
     def game_over(self, side):

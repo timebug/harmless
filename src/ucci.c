@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <string.h>
+#ifdef __APPLE__
+#include <malloc/malloc.h>
+#else
 #include <malloc.h>
+#endif
 #include "pipe.h"
 #include "ucci.h"
 
@@ -41,7 +45,7 @@ static int read_digit(char *line_str, int max_value)
             if (value > max_value) {
                 value = max_value;
             }
-                        
+
         } else {
             break;
         }
@@ -53,11 +57,11 @@ static int read_digit(char *line_str, int max_value)
 ucci_comm_enum boot_line()
 {
     char line_str[LINE_INPUT_MAX_CHAR];
-        
+
     open_pipe();
 
     while (!line_input(line_str)) {
-        idle(1);
+        idle();
     }
 
     if (strcmp(line_str, "ucci") == 0) {
@@ -74,7 +78,7 @@ ucci_comm_enum idle_line(ucci_comm_struct *ucs_command)
     ucci_comm_enum uce_return_value = UCCI_COMM_NONE;
 
     while (!line_input(command_line_str)) {
-        idle(1);
+        idle();
     }
 
     line_str = command_line_str;
@@ -85,18 +89,18 @@ ucci_comm_enum idle_line(ucci_comm_struct *ucs_command)
     } else if (strncmp(line_str, "setoption ", 10) == 0) {
         /* setoption <option> [<arguments>] */
         line_str += 10;
-                
+
         if (strncmp(line_str, "newgame", 7) == 0) {
             ucs_command->option.uo_type = UCCI_OPTION_NEWGAME;
         } else {
             ucs_command->option.uo_type = UCCI_OPTION_NONE;
         }
-                
+
         return UCCI_COMM_SETOPTION;
     } else if (strncmp(line_str, "position ", 9) == 0) {
         /* position {<special_position> | fen <fen_string>} [moves <move_list>] */
         line_str += 9;
-                
+
         if (strncmp(line_str, "fen ", 4) == 0) {
             ucs_command->position.fen_str = line_str + 4;
         } else {
@@ -119,7 +123,7 @@ ucci_comm_enum idle_line(ucci_comm_struct *ucs_command)
         }
 
         return UCCI_COMM_POSITION;
-        
+
     } else if(strncmp(line_str, "banmoves ", 9) == 0) {
         /* banmoves <move_list> */
         line_str += 9;
@@ -132,7 +136,7 @@ ucci_comm_enum idle_line(ucci_comm_struct *ucs_command)
 
         ucs_command->ban_moves.coord_list = coord_list;
         return UCCI_COMM_BANMOVES;
-        
+
     } else if (strncmp(line_str, "go ", 3) == 0) {
         /* go [ponder] {infinite | depth <depth> | time <time> [movestogo <moves_to_go> | increment <inc_time>]} */
         line_str += 3;
@@ -159,7 +163,7 @@ ucci_comm_enum idle_line(ucci_comm_struct *ucs_command)
         }
 
         return uce_return_value;
-        
+
     } else if (strcmp(line_str, "stop") == 0) {
         /* stop */
         return UCCI_COMM_STOP;
@@ -183,7 +187,7 @@ ucci_comm_enum busy_line()
         } else {
             return UCCI_COMM_NONE;
         }
-                
+
     } else {
         return UCCI_COMM_NONE;
     }

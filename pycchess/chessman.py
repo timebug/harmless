@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # pycchess - just another chinese chess UI
-# Copyright (C) 2011 timebug.info
+# Copyright (C) 2011 - 2015 timebug
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or 
+# the Free Software Foundation, either version 3 of the License, or
 # any later version.
 
 # This program is distributed in the hope that it will be useful,
@@ -91,7 +91,7 @@ class chessman:
                         ok = False
                     else:
                         if self.y == 5 and y == 4:
-                            self.over_river = True                
+                            self.over_river = True
 
         else:
             ok = False

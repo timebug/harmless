@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # pycchess - just another chinese chess UI
-# Copyright (C) 2011 timebug.info
+# Copyright (C) 2011 - 2015 timebug
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or 
+# the Free Software Foundation, either version 3 of the License, or
 # any later version.
 
 # This program is distributed in the hope that it will be useful,
@@ -110,7 +110,7 @@ def str_to_move(move_str):
     move_arr[2] = ord(move_str[2]) - ord('a')
     move_arr[3] = ord('9') - ord(move_str[3])
     return move_arr
-    
+
 class move:
     def __init__(self, p, n):
         self.p = p

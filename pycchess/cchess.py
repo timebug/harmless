@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # pycchess - just another chinese chess UI
-# Copyright (C) 2011 timebug.info
+# Copyright (C) 2011 - 2015 timebug
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or 
+# the Free Software Foundation, either version 3 of the License, or
 # any later version.
 
 # This program is distributed in the hope that it will be useful,
@@ -56,7 +56,7 @@ if len(sys.argv) == 2 and sys.argv[1][:2] == '-n':
         sys.exit()
 
     chessboard.net.NET_HOST = sys.argv[2]
-    
+
 elif len(sys.argv) == 1:
     p = Popen("./harmless", stdin=PIPE, stdout=PIPE, close_fds=ON_POSIX)
     (chessboard.fin, chessboard.fout) = (p.stdin, p.stdout)
@@ -64,7 +64,7 @@ elif len(sys.argv) == 1:
     t = Thread(target=enqueue_output, args=(chessboard.fout, q))
     t.daemon = True
     t.start()
-    
+
     chessboard.fin.write("ucci\n")
     chessboard.fin.flush()
 
@@ -77,7 +77,7 @@ elif len(sys.argv) == 1:
             sys.stdout.write(output)
             if 'ucciok' in output:
                 break
-        
+
     chessboard.mode = AI
     pygame.display.set_caption("harmless")
     chessboard.side = RED
@@ -112,7 +112,7 @@ def quitGame():
         chessboard.fin.write("quit\n")
         chessboard.fin.flush()
         p.terminate()
-        
+
     print '>> quit game'
     sys.exit()
 
@@ -120,7 +120,7 @@ def runGame():
     global init
     global waiting
     global moved
-    
+
     for event in pygame.event.get():
         if event.type == QUIT:
             quitGame()
@@ -130,7 +130,7 @@ def runGame():
                     if not waiting or chessboard.over:
                         newGame()
                         return
-                
+
         if event.type == MOUSEBUTTONDOWN:
             x, y = pygame.mouse.get_pos()
             if x < BORDER or x > (WIDTH - BORDER):
@@ -145,10 +145,10 @@ def runGame():
                     chessboard.over = chessboard.game_over(1-chessboard.side)
                     if chessboard.over:
                         chessboard.over_side = 1-chessboard.side
-                
+
     chessboard.draw(screen)
     pygame.display.update()
-    
+
     if moved:
         if chessboard.mode is NETWORK:
             move_str = chessboard.net.get_move()
@@ -157,7 +157,7 @@ def runGame():
                 move_arr = str_to_move(move_str)
             else:
                 quitGame()
-                
+
         if chessboard.mode is AI:
             try:
                 output = q.get_nowait()
@@ -167,8 +167,8 @@ def runGame():
             else:
                 waiting = False
                 sys.stdout.write(output)
-            
-            if output[0:10] == 'nobestmove': 
+
+            if output[0:10] == 'nobestmove':
                 chessboard.over = True
                 chessboard.over_side = 1 - chessboard.side
 
@@ -177,7 +177,7 @@ def runGame():
                 else:
                     win_side = 'RED'
                 print '>>', win_side, 'win'
-                
+
                 return
             elif output[0:8] == 'bestmove':
                 move_str = output[9:13]
@@ -191,18 +191,18 @@ def runGame():
         chessboard.move_chessman(move_arr[2], move_arr[3])
         chessboard.move_from = LOCAL
         chessboard.side = 1 - chessboard.side
-            
+
         # if chessboard.check(chessboard.side):
         chessboard.over = chessboard.game_over(chessboard.side)
         if chessboard.over:
             chessboard.over_side = chessboard.side
-            
+
             if chessboard.over_side == RED:
                 win_side = 'BLACK'
             else:
                 win_side = 'RED'
             print '>>', win_side, 'win'
-            
+
         moved = False
 
     if len(sys.argv) == 2 and sys.argv[1][:2] == '-n' and init:
@@ -210,7 +210,7 @@ def runGame():
         if move_str is not None:
             # print 'recv move: %s' % move_str
             move_arr = str_to_move(move_str)
-            
+
             chessboard.side = 1 - chessboard.side
             chessboard.move_from = OTHER
             chessboard.move_chessman(move_arr[0], move_arr[1])
