@@ -11,7 +11,7 @@ A chinese chess engine
 * `python-2.7.x`: <http://python.org>
 * `pygame-1.9.x`: <http://pygame.org>
 
-> install pygame on OS X Lion
+Hint: install pygame on OS X Lion
 
 <http://stackoverflow.com/questions/7288571/best-way-to-install-pygame-on-os-x-lion>
 
