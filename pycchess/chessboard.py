@@ -399,7 +399,7 @@ class chessboard:
                                     if self.net is not None:
                                         self.net.send_move(move_str)
                                     else:
-                                        print 'self.net is None'
+                                        print '网络未连接'
 
                                 if self.mode == AI:
                                     fen_str = self.get_fen()
