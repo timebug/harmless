@@ -1,34 +1,43 @@
-# harmless
+# Harmless
 
-A chinese chess engine
+A Chinese Chess (Xiangqi) engine and UI.
 
-## INSTALL
+## Requirements
 
-### GNU/Linux and Mac OS X User
+* Python 2.7
+* Pygame 1.9+
 
-> require
+## Build and Run
 
-* `python-2.7.x`: <http://python.org>
-* `pygame-1.9.x`: <http://pygame.org>
+### Linux / macOS
 
-Hint: install pygame on OS X Lion
+1.  **Clone the repository**
 
-<http://stackoverflow.com/questions/7288571/best-way-to-install-pygame-on-os-x-lion>
+    ```bash
+    git clone https://github.com/timebug/harmless.git
+    cd harmless
+    ```
 
-> run
+2.  **Compile the engine**
 
-```
-$ git clone git://github.com/timebug/harmless.git
-$ make && make install
-$ cd pycchess && python cchess.py
-```
+    This project includes a C engine that needs to be compiled first.
 
-### Windows User
+    ```bash
+    make
+    make install
+    ```
 
-1. Access <https://github.com/timebug/harmless/downloads>
-2. Download `pycchess-win32-*.zip` then unzip it
-3. Run `cchess.exe`
+    This will compile the engine and copy the binary to the `pycchess` directory.
 
-## KEYBOARD SHORTCUTS
+3.  **Run the game**
 
-* `space`: new game
+    ```bash
+    cd pycchess
+    python2 cchess.py
+    ```
+
+    *Note: This project currently requires Python 2.*
+
+## Keyboard Shortcuts
+
+* **Space**: Start a new game
