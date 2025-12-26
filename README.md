@@ -1,34 +1,50 @@
 # harmless
 
-A chinese chess engine
+A Chinese Chess (Xiangqi) engine implemented in C, with a graphical user interface written in Python.
 
-## INSTALL
+## Features
 
-### GNU/Linux and Mac OS X User
+- **Engine**: Efficient C-based engine supporting the UCCI protocol.
+- **GUI**: User-friendly interface built with Python and Pygame.
+- **Modes**:
+  - **AI Mode**: Play against the computer.
+  - **Network Mode**: Support for network play (experimental).
 
-> require
+## Prerequisites
 
-* `python-2.7.x`: <http://python.org>
-* `pygame-1.9.x`: <http://pygame.org>
+- **C Compiler**: GCC or compatible.
+- **Make**: For building the project.
+- **Python**: Python 2.7 (Legacy).
+- **Pygame**: Library for the GUI (requires Pygame for Python 2).
 
-Hint: install pygame on OS X Lion
+## Build and Run
 
-<http://stackoverflow.com/questions/7288571/best-way-to-install-pygame-on-os-x-lion>
+### 1. Build the Engine
 
-> run
+Compile the source code and install the binary to the game directory:
 
+```bash
+make install
 ```
-$ git clone git://github.com/timebug/harmless.git
-$ make && make install
-$ cd pycchess && python cchess.py
+
+This will compile the C engine in `src/` and copy the `harmless` executable to the `pycchess/` directory.
+
+### 2. Run the Game
+
+Navigate to the game directory and start the Python script:
+
+```bash
+cd pycchess
+python cchess.py
 ```
 
-### Windows User
+> **Note**: The codebase uses Python 2 syntax. Ensure you are using a Python 2 interpreter.
 
-1. Access <https://github.com/timebug/harmless/downloads>
-2. Download `pycchess-win32-*.zip` then unzip it
-3. Run `cchess.exe`
+## Controls
 
-## KEYBOARD SHORTCUTS
+- **Space**: Start a new game / Restart.
+- **Mouse**: Click to select and move pieces.
 
-* `space`: new game
+## License
+
+This project is licensed under the GNU General Public License v3 (GPLv3).
