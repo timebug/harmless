@@ -32,7 +32,7 @@ from Queue import Queue, Empty
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
-def enqueue_output(out, queue):
+def enqueue_output_xxx(out, queue):
     for line in iter(out.readline, ''):
         queue.put(line)
     out.close()
@@ -61,7 +61,7 @@ elif len(sys.argv) == 1:
     p = Popen("./harmless", stdin=PIPE, stdout=PIPE, close_fds=ON_POSIX)
     (chessboard.fin, chessboard.fout) = (p.stdin, p.stdout)
     q = Queue()
-    t = Thread(target=enqueue_output, args=(chessboard.fout, q))
+    t = Thread(target=enqueue_output_xxx, args=(chessboard.fout, q))
     t.daemon = True
     t.start()
 
