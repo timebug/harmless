@@ -49,9 +49,16 @@ class chessboard:
         self.done_surface = pygame.image.load(image_path + done_image).convert_alpha()
         self.over_surface = pygame.image.load(image_path + over_image).convert_alpha()
 
-        self.check_sound = load_sound(check_sound)
-        self.move_sound = load_sound(move_sound)
-        self.capture_sound = load_sound(capture_sound)
+        try:
+            pygame.mixer.init()
+            self.check_sound = load_sound(check_sound)
+            self.move_sound = load_sound(move_sound)
+            self.capture_sound = load_sound(capture_sound)
+        except pygame.error as message:
+            print('Warning: Could not initialize audio:', message)
+            self.check_sound = None
+            self.move_sound = None
+            self.capture_sound = None
 
     def add_chessman(self, kind, color, x, y, pc):
         chessman_ = chessman(kind, color, x, y, pc)
@@ -382,12 +389,15 @@ class chessboard:
                             under_attack = self.check(1 - self.side)
 
                             if under_attack is True:
-                                self.check_sound.play()
+                                if self.check_sound:
+                                    self.check_sound.play()
                             else:
                                 if chessman_ == None:
-                                    self.move_sound.play()
+                                    if self.move_sound:
+                                        self.move_sound.play()
                                 else:
-                                    self.capture_sound.play()
+                                    if self.capture_sound:
+                                        self.capture_sound.play()
 
                             self.done = [self.selected, (x, y)]
 
@@ -399,14 +409,14 @@ class chessboard:
                                     if self.net is not None:
                                         self.net.send_move(move_str)
                                     else:
-                                        print 'self.net is None'
+                                        print('self.net is None')
 
                                 if self.mode == AI:
                                     fen_str = self.get_fen()
-                                    self.fin.write('position fen ' + fen_str + '\n')
+                                    self.fin.write(('position fen ' + fen_str + '\n').encode())
                                     # print "position fen %s" % fen_str
                                     self.fin.flush()
-                                    self.fin.write('go depth ' + str(AI_SEARCH_DEPTH)  + '\n')
+                                    self.fin.write(('go depth ' + str(AI_SEARCH_DEPTH)  + '\n').encode())
                                     self.fin.flush()
 
                             self.selected = ()

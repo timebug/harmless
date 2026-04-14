@@ -28,13 +28,13 @@ from pygame.locals import *
 import sys
 from subprocess import PIPE, Popen
 from threading import Thread
-from Queue import Queue, Empty
+from queue import Queue, Empty
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
 def enqueue_output(out, queue):
-    for line in iter(out.readline, ''):
-        queue.put(line)
+    for line in iter(out.readline, b''):
+        queue.put(line.decode())
     out.close()
 
 pygame.init()
@@ -52,7 +52,7 @@ if len(sys.argv) == 2 and sys.argv[1][:2] == '-n':
         pygame.display.set_caption("black")
         chessboard.side = BLACK
     else:
-        print '>> quit game'
+        print('>> quit game')
         sys.exit()
 
     chessboard.net.NET_HOST = sys.argv[2]
@@ -65,7 +65,7 @@ elif len(sys.argv) == 1:
     t.daemon = True
     t.start()
 
-    chessboard.fin.write("ucci\n")
+    chessboard.fin.write("ucci\n".encode())
     chessboard.fin.flush()
 
     while True:
@@ -82,7 +82,7 @@ elif len(sys.argv) == 1:
     pygame.display.set_caption("harmless")
     chessboard.side = RED
 else:
-    print '>> quit game'
+    print('>> quit game')
     sys.exit()
 
 chessboard.fen_parse(fen_str)
@@ -95,9 +95,9 @@ def newGame():
     global waiting
     global moved
 
-    chessboard.fin.write("setoption newgame\n")
+    chessboard.fin.write("setoption newgame\n".encode())
     chessboard.fin.flush()
-    print '>> new game'
+    print('>> new game')
 
     chessboard.fen_parse(fen_str)
     init = True
@@ -109,11 +109,11 @@ def quitGame():
         net = chessnet()
         net.send_move('quit')
     if chessboard.mode is AI:
-        chessboard.fin.write("quit\n")
+        chessboard.fin.write("quit\n".encode())
         chessboard.fin.flush()
         p.terminate()
 
-    print '>> quit game'
+    print('>> quit game')
     sys.exit()
 
 def runGame():
@@ -176,7 +176,7 @@ def runGame():
                     win_side = 'BLACK'
                 else:
                     win_side = 'RED'
-                print '>>', win_side, 'win'
+                print('>>', win_side, 'win')
 
                 return
             elif output[0:8] == 'bestmove':
@@ -201,7 +201,7 @@ def runGame():
                 win_side = 'BLACK'
             else:
                 win_side = 'RED'
-            print '>>', win_side, 'win'
+            print('>>', win_side, 'win')
 
         moved = False
 
