@@ -119,6 +119,6 @@ class move:
 def load_sound(name):
     try:
         sound = pygame.mixer.Sound(name)
-    except pygame.error, message:
-        raise SystemExit, message
+    except pygame.error as message:
+        raise SystemExit(message)
     return sound
