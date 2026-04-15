@@ -28,7 +28,7 @@ from pygame.locals import *
 import sys
 from subprocess import PIPE, Popen
 from threading import Thread
-from Queue import Queue, Empty
+from queue import Queue, Empty
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -52,8 +52,8 @@ if len(sys.argv) == 2 and sys.argv[1][:2] == '-n':
         pygame.display.set_caption("black")
         chessboard.side = BLACK
     else:
-        print '>> quit game'
-        sys.exit()
+            print('>> quit game')
+            sys.exit()
 
     chessboard.net.NET_HOST = sys.argv[2]
 
@@ -82,8 +82,8 @@ elif len(sys.argv) == 1:
     pygame.display.set_caption("harmless")
     chessboard.side = RED
 else:
-    print '>> quit game'
-    sys.exit()
+        print('>> quit game')
+        sys.exit()
 
 chessboard.fen_parse(fen_str)
 init = True
@@ -97,7 +97,7 @@ def newGame():
 
     chessboard.fin.write("setoption newgame\n")
     chessboard.fin.flush()
-    print '>> new game'
+    print('>> new game')
 
     chessboard.fen_parse(fen_str)
     init = True
@@ -113,7 +113,7 @@ def quitGame():
         chessboard.fin.flush()
         p.terminate()
 
-    print '>> quit game'
+    print('>> quit game')
     sys.exit()
 
 def runGame():
@@ -176,7 +176,7 @@ def runGame():
                     win_side = 'BLACK'
                 else:
                     win_side = 'RED'
-                print '>>', win_side, 'win'
+                print('>>', win_side, 'win')
 
                 return
             elif output[0:8] == 'bestmove':
@@ -201,7 +201,7 @@ def runGame():
                 win_side = 'BLACK'
             else:
                 win_side = 'RED'
-            print '>>', win_side, 'win'
+            print('>>', win_side, 'win')
 
         moved = False
 
