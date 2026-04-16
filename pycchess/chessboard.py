@@ -308,18 +308,18 @@ class chessboard:
     def can_move(self, chessman, x, y):
         ok = True
         if chessman.kind == BISHOP:
-            m_x = (chessman.x + x) / 2
-            m_y = (chessman.y + y) / 2
+            m_x = (chessman.x + x) // 2
+            m_y = (chessman.y + y) // 2
             if (m_x, m_y) in self.board.keys():
                 ok = False
 
         if chessman.kind == KNIGHT:
             if abs(chessman.x - x) == 2:
-                m_x = (chessman.x + x) / 2
+                m_x = (chessman.x + x) // 2
                 m_y = chessman.y
             if abs(chessman.y - y) == 2:
                 m_x = chessman.x
-                m_y = (chessman.y + y) / 2
+                m_y = (chessman.y + y) // 2
             if (m_x, m_y) in self.board.keys():
                 ok = False
 
@@ -394,19 +394,19 @@ class chessboard:
                             if self.move_from == LOCAL:
                                 if self.mode == NETWORK:
                                     move_str_ = move_to_str(self.selected[0],self.selected[1],x,y)
-                                    # print 'send move: %s' % move_str_
+                                    # print('send move: %s' % move_str_)
                                     move_str = move_to_str(8-self.selected[0],9-self.selected[1],8-x,9-y)
                                     if self.net is not None:
                                         self.net.send_move(move_str)
                                     else:
-                                        print 'self.net is None'
+                                        print('self.net is None')
 
                                 if self.mode == AI:
                                     fen_str = self.get_fen()
-                                    self.fin.write('position fen ' + fen_str + '\n')
-                                    # print "position fen %s" % fen_str
+                                    self.fin.write(('position fen ' + fen_str + '\n').encode('utf-8'))
+                                    # print("position fen %s" % fen_str)
                                     self.fin.flush()
-                                    self.fin.write('go depth ' + str(AI_SEARCH_DEPTH)  + '\n')
+                                    self.fin.write(('go depth ' + str(AI_SEARCH_DEPTH)  + '\n').encode('utf-8'))
                                     self.fin.flush()
 
                             self.selected = ()
