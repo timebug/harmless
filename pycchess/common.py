@@ -118,7 +118,11 @@ class move:
 
 def load_sound(name):
     try:
-        sound = pygame.mixer.Sound(name)
-    except pygame.error, message:
-        raise SystemExit, message
+        if pygame.mixer.get_init():
+            sound = pygame.mixer.Sound(name)
+        else:
+            sound = None
+    except pygame.error as message:
+        print('Warning: Could not load sound:', message)
+        sound = None
     return sound
