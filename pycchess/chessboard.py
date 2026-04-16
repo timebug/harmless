@@ -308,18 +308,18 @@ class chessboard:
     def can_move(self, chessman, x, y):
         ok = True
         if chessman.kind == BISHOP:
-            m_x = (chessman.x + x) / 2
-            m_y = (chessman.y + y) / 2
+            m_x = (chessman.x + x) // 2
+            m_y = (chessman.y + y) // 2
             if (m_x, m_y) in self.board.keys():
                 ok = False
 
         if chessman.kind == KNIGHT:
             if abs(chessman.x - x) == 2:
-                m_x = (chessman.x + x) / 2
+                m_x = (chessman.x + x) // 2
                 m_y = chessman.y
             if abs(chessman.y - y) == 2:
                 m_x = chessman.x
-                m_y = (chessman.y + y) / 2
+                m_y = (chessman.y + y) // 2
             if (m_x, m_y) in self.board.keys():
                 ok = False
 
@@ -399,14 +399,14 @@ class chessboard:
                                     if self.net is not None:
                                         self.net.send_move(move_str)
                                     else:
-                                        print 'self.net is None'
+                                        print('self.net is None')
 
                                 if self.mode == AI:
                                     fen_str = self.get_fen()
-                                    self.fin.write('position fen ' + fen_str + '\n')
-                                    # print "position fen %s" % fen_str
+                                    self.fin.write(('position fen ' + fen_str + '\n').encode())
+                                    # print("position fen %s" % fen_str)
                                     self.fin.flush()
-                                    self.fin.write('go depth ' + str(AI_SEARCH_DEPTH)  + '\n')
+                                    self.fin.write(('go depth ' + str(AI_SEARCH_DEPTH)  + '\n').encode())
                                     self.fin.flush()
 
                             self.selected = ()
