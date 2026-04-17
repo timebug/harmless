@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # pycchess - just another chinese chess UI
@@ -28,12 +28,12 @@ from pygame.locals import *
 import sys
 from subprocess import PIPE, Popen
 from threading import Thread
-from Queue import Queue, Empty
+from queue import Queue, Empty
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
 def enqueue_output(out, queue):
-    for line in iter(out.readline, ''):
+    for line in iter(out.readline, b''):
         queue.put(line)
     out.close()
 
@@ -42,7 +42,7 @@ pygame.init()
 screen = pygame.display.set_mode(size, 0, 32)
 chessboard = chessboard()
 
-if len(sys.argv) == 2 and sys.argv[1][:2] == '-n':
+if len(sys.argv) == 3 and sys.argv[1][:2] == '-n':
     chessboard.net = chessnet()
 
     if sys.argv[1][2:] == 'r':
@@ -52,20 +52,20 @@ if len(sys.argv) == 2 and sys.argv[1][:2] == '-n':
         pygame.display.set_caption("black")
         chessboard.side = BLACK
     else:
-        print '>> quit game'
+        print('>> quit game')
         sys.exit()
 
     chessboard.net.NET_HOST = sys.argv[2]
 
 elif len(sys.argv) == 1:
-    p = Popen("./harmless", stdin=PIPE, stdout=PIPE, close_fds=ON_POSIX)
+    p = Popen(["./harmless"], stdin=PIPE, stdout=PIPE, close_fds=ON_POSIX)
     (chessboard.fin, chessboard.fout) = (p.stdin, p.stdout)
     q = Queue()
     t = Thread(target=enqueue_output, args=(chessboard.fout, q))
     t.daemon = True
     t.start()
 
-    chessboard.fin.write("ucci\n")
+    chessboard.fin.write(b"ucci\n")
     chessboard.fin.flush()
 
     while True:
@@ -74,15 +74,15 @@ elif len(sys.argv) == 1:
         except Empty:
             continue
         else:
-            sys.stdout.write(output)
-            if 'ucciok' in output:
+            sys.stdout.write(output.decode())
+            if b'ucciok' in output:
                 break
 
     chessboard.mode = AI
     pygame.display.set_caption("harmless")
     chessboard.side = RED
 else:
-    print '>> quit game'
+    print('>> quit game')
     sys.exit()
 
 chessboard.fen_parse(fen_str)
@@ -95,9 +95,9 @@ def newGame():
     global waiting
     global moved
 
-    chessboard.fin.write("setoption newgame\n")
+    chessboard.fin.write(b"setoption newgame\n")
     chessboard.fin.flush()
-    print '>> new game'
+    print('>> new game')
 
     chessboard.fen_parse(fen_str)
     init = True
@@ -109,11 +109,11 @@ def quitGame():
         net = chessnet()
         net.send_move('quit')
     if chessboard.mode is AI:
-        chessboard.fin.write("quit\n")
+        chessboard.fin.write(b"quit\n")
         chessboard.fin.flush()
         p.terminate()
 
-    print '>> quit game'
+    print('>> quit game')
     sys.exit()
 
 def runGame():
@@ -137,8 +137,8 @@ def runGame():
                 break
             if y < BORDER or y > (HEIGHT - BORDER):
                 break
-            x = (x - BORDER) / SPACE
-            y = (y - BORDER) / SPACE
+            x = (x - BORDER) // SPACE
+            y = (y - BORDER) // SPACE
             if not waiting and not chessboard.over:
                 moved = chessboard.move_chessman(x, y)
                 if chessboard.mode == NETWORK and moved:
@@ -152,7 +152,7 @@ def runGame():
     if moved:
         if chessboard.mode is NETWORK:
             move_str = chessboard.net.get_move()
-            if move_str is not 'quit':
+            if move_str != 'quit':
                 # print 'recv move: %s' % move_str
                 move_arr = str_to_move(move_str)
             else:
@@ -166,9 +166,9 @@ def runGame():
                 return
             else:
                 waiting = False
-                sys.stdout.write(output)
+                sys.stdout.write(output.decode())
 
-            if output[0:10] == 'nobestmove':
+            if output[0:10] == b'nobestmove':
                 chessboard.over = True
                 chessboard.over_side = 1 - chessboard.side
 
@@ -176,11 +176,11 @@ def runGame():
                     win_side = 'BLACK'
                 else:
                     win_side = 'RED'
-                print '>>', win_side, 'win'
+                print('>>', win_side, 'win')
 
                 return
-            elif output[0:8] == 'bestmove':
-                move_str = output[9:13]
+            elif output[0:8] == b'bestmove':
+                move_str = output[9:13].decode()
                 move_arr = str_to_move(move_str)
             else:
                 return
@@ -201,11 +201,11 @@ def runGame():
                 win_side = 'BLACK'
             else:
                 win_side = 'RED'
-            print '>>', win_side, 'win'
+            print('>>', win_side, 'win')
 
         moved = False
 
-    if len(sys.argv) == 2 and sys.argv[1][:2] == '-n' and init:
+    if len(sys.argv) == 3 and sys.argv[1][:2] == '-n' and init:
         move_str = chessboard.net.get_move()
         if move_str is not None:
             # print 'recv move: %s' % move_str
