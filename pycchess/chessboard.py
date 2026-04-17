@@ -382,12 +382,15 @@ class chessboard:
                             under_attack = self.check(1 - self.side)
 
                             if under_attack is True:
-                                self.check_sound.play()
+                                if self.check_sound:
+                                    self.check_sound.play()
                             else:
                                 if chessman_ == None:
-                                    self.move_sound.play()
+                                    if self.move_sound:
+                                        self.move_sound.play()
                                 else:
-                                    self.capture_sound.play()
+                                    if self.capture_sound:
+                                        self.capture_sound.play()
 
                             self.done = [self.selected, (x, y)]
 
@@ -399,14 +402,14 @@ class chessboard:
                                     if self.net is not None:
                                         self.net.send_move(move_str)
                                     else:
-                                        print 'self.net is None'
+                                        print('self.net is None')
 
                                 if self.mode == AI:
                                     fen_str = self.get_fen()
-                                    self.fin.write('position fen ' + fen_str + '\n')
-                                    # print "position fen %s" % fen_str
+                                    self.fin.write(('position fen ' + fen_str + '\n').encode('utf-8'))
+                                    # print("position fen %s" % fen_str)
                                     self.fin.flush()
-                                    self.fin.write('go depth ' + str(AI_SEARCH_DEPTH)  + '\n')
+                                    self.fin.write(('go depth ' + str(AI_SEARCH_DEPTH)  + '\n').encode('utf-8'))
                                     self.fin.flush()
 
                             self.selected = ()
