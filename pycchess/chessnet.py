@@ -30,14 +30,14 @@ class chessnet():
 
         try:
             s.connect((self.NET_HOST, self.NET_PORT))
-        except socket.error, e:
-            print "Couldn't find your port: %s" % e
+        except socket.error as e:
+            print("Couldn't find your port: %s" % e)
             sys.exit(1)
 
         try:
-            s.send(move)
-        except socket.error, e:
-            print "Error sending data (detected by shutdown): %s" % e
+            s.send(move.encode())
+        except socket.error as e:
+            print("Error sending data (detected by shutdown): %s" % e)
             sys.exit(1)
 
         s.close()
@@ -51,16 +51,16 @@ class chessnet():
         while 1:
             try:
                 clientsock, clientaddr = s.accept()
-                # print clientaddr
+                # print(clientaddr)
             except KeyboardInterrupt:
                 raise
             except:
                 traceback.print_exc()
                 continue
             try:
-                move = clientsock.recv(1024)
-            except socket.error, e:
-                print "Error receiving data: %s" % e
+                move = clientsock.recv(1024).decode()
+            except socket.error as e:
+                print("Error receiving data: %s" % e)
                 sys.exit(1)
             except:
                 traceback.print_exc()
