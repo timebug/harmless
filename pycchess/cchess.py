@@ -28,13 +28,13 @@ from pygame.locals import *
 import sys
 from subprocess import PIPE, Popen
 from threading import Thread
-from Queue import Queue, Empty
+from queue import Queue, Empty
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
 def enqueue_output(out, queue):
-    for line in iter(out.readline, ''):
-        queue.put(line)
+    for line in iter(out.readline, b''):
+        queue.put(line.decode())
     out.close()
 
 pygame.init()
@@ -52,7 +52,7 @@ if len(sys.argv) == 2 and sys.argv[1][:2] == '-n':
         pygame.display.set_caption("black")
         chessboard.side = BLACK
     else:
-        print '>> quit game'
+        print('>> quit game')
         sys.exit()
 
     chessboard.net.NET_HOST = sys.argv[2]
@@ -65,7 +65,7 @@ elif len(sys.argv) == 1:
     t.daemon = True
     t.start()
 
-    chessboard.fin.write("ucci\n")
+    chessboard.fin.write(b"ucci\n")
     chessboard.fin.flush()
 
     while True:
@@ -95,9 +95,9 @@ def newGame():
     global waiting
     global moved
 
-    chessboard.fin.write("setoption newgame\n")
+    chessboard.fin.write(b"setoption newgame\n")
     chessboard.fin.flush()
-    print '>> new game'
+    print('>> new game')
 
     chessboard.fen_parse(fen_str)
     init = True
@@ -109,11 +109,11 @@ def quitGame():
         net = chessnet()
         net.send_move('quit')
     if chessboard.mode is AI:
-        chessboard.fin.write("quit\n")
+        chessboard.fin.write(b"quit\n")
         chessboard.fin.flush()
         p.terminate()
 
-    print '>> quit game'
+    print('>> quit game')
     sys.exit()
 
 def runGame():
@@ -137,8 +137,8 @@ def runGame():
                 break
             if y < BORDER or y > (HEIGHT - BORDER):
                 break
-            x = (x - BORDER) / SPACE
-            y = (y - BORDER) / SPACE
+            x = (x - BORDER) // SPACE
+            y = (y - BORDER) // SPACE
             if not waiting and not chessboard.over:
                 moved = chessboard.move_chessman(x, y)
                 if chessboard.mode == NETWORK and moved:
@@ -152,7 +152,7 @@ def runGame():
     if moved:
         if chessboard.mode is NETWORK:
             move_str = chessboard.net.get_move()
-            if move_str is not 'quit':
+            if move_str != 'quit':
                 # print 'recv move: %s' % move_str
                 move_arr = str_to_move(move_str)
             else:
