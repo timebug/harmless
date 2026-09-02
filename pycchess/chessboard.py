@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # pycchess - just another chinese chess UI
@@ -73,18 +73,18 @@ class chessboard:
         for j in range(10):
             for i in range(9):
                 if (i, j) in self.board.keys():
-                    if count is not 0:
+                    if count != 0:
                         fen_str += str(count)
                         count = 0
                     chessman = self.board[(i, j)]
                     ch = get_char(chessman.kind, chessman.color)
 
-                    if ch is not '':
+                    if ch != '':
                         fen_str += ch
                 else:
                     count += 1
 
-            if count is not 0:
+            if count != 0:
                 fen_str += str(count)
                 count = 0
             if j < 9:
@@ -308,18 +308,18 @@ class chessboard:
     def can_move(self, chessman, x, y):
         ok = True
         if chessman.kind == BISHOP:
-            m_x = (chessman.x + x) / 2
-            m_y = (chessman.y + y) / 2
+            m_x = (chessman.x + x) // 2
+            m_y = (chessman.y + y) // 2
             if (m_x, m_y) in self.board.keys():
                 ok = False
 
         if chessman.kind == KNIGHT:
             if abs(chessman.x - x) == 2:
-                m_x = (chessman.x + x) / 2
+                m_x = (chessman.x + x) // 2
                 m_y = chessman.y
             if abs(chessman.y - y) == 2:
                 m_x = chessman.x
-                m_y = (chessman.y + y) / 2
+                m_y = (chessman.y + y) // 2
             if (m_x, m_y) in self.board.keys():
                 ok = False
 
@@ -356,10 +356,10 @@ class chessboard:
             if chessman.color == self.side:
                 flag = True
             else:
-                if self.selected is ():
+                if self.selected == ():
                     return False
 
-        if self.selected is ():
+        if self.selected == ():
             if flag:
                 self.selected = (x, y)
 
@@ -399,7 +399,7 @@ class chessboard:
                                     if self.net is not None:
                                         self.net.send_move(move_str)
                                     else:
-                                        print 'self.net is None'
+                                        print('self.net is None')
 
                                 if self.mode == AI:
                                     fen_str = self.get_fen()

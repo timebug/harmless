@@ -8,8 +8,8 @@ A chinese chess engine
 
 > require
 
-* `python-2.7.x`: <http://python.org>
-* `pygame-1.9.x`: <http://pygame.org>
+* `python-3.x`: <http://python.org>
+* `pygame-2.x`: <http://pygame.org>
 
 Hint: install pygame on OS X Lion
 
@@ -20,7 +20,7 @@ Hint: install pygame on OS X Lion
 ```
 $ git clone git://github.com/timebug/harmless.git
 $ make && make install
-$ cd pycchess && python cchess.py
+$ cd pycchess && python3 cchess.py
 ```
 
 ### Windows User
