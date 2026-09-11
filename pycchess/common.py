@@ -116,9 +116,16 @@ class move:
         self.p = p
         self.n = n
 
+class _SilentSound:
+    def play(self, *args, **kwargs):
+        return None
+
 def load_sound(name):
+    # pygame 2 / SDL2 leaves the mixer uninitialized when no audio device
+    # is present. The UI should still start; moves just play no sound.
     try:
-        sound = pygame.mixer.Sound(name)
-    except pygame.error as message:
-        raise SystemExit(message)
-    return sound
+        if not pygame.mixer.get_init():
+            return _SilentSound()
+        return pygame.mixer.Sound(name)
+    except pygame.error:
+        return _SilentSound()
